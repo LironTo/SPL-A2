@@ -1,0 +1,30 @@
+{
+  "Cameras": {
+    "CamerasConfigurations":[
+      {
+        "id": 1,
+        "frequency": 1,
+        "camera_key": "camera1"
+      },{
+        "id": 1,
+        "frequency": 2,
+        "camera_key": "camera2"
+      }
+    ],
+    "camera_datas_path": "./camera_data.json"
+  },
+  "Lidars": {
+    "LidarConfigurations":[{
+      "id": 1,
+      "frequency": 4
+    },
+    {
+      "id": 2,
+      "frequency": 2
+    }],
+    "lidars_data_path":"./lidar_data.json"
+  },
+  "poseJsonFile": "./pose_data.json",
+  "TickTime": 1,
+  "Duration": 300
+}

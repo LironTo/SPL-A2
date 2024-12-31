@@ -6,5 +6,8 @@ package bgu.spl.mics.application.objects;
  * time of tracking, and coordinates in the environment.
  */
 public class TrackedObject {
-    // TODO: Define fields and methods.
+    private int id;
+    private int time;
+    private String description;
+    private int[] coordinates;
 }

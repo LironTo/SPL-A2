@@ -1,29 +1,27 @@
 package bgu.spl.mics.application.messages;
-import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import bgu.spl.mics.Event;
-import java.util.Collections;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 
-public class DetectObjectEvent<T> implements Event<T> {
-    private final int cameraId;
+public class DetectObjectEvent implements Event<Boolean> {
+    private final String sender;
     private final int time;
-    private final List<String> detectedObjects;
+    private final StampedDetectedObjects detectedObjects;
 
-    public DetectObjectEvent(int cameraId, int time, List<String> detectedObjects) {
-        this.cameraId = cameraId;
-        this.time = time;
-        this.detectedObjects = Collections.unmodifiableList(new CopyOnWriteArrayList<>(detectedObjects));
+    public DetectObjectEvent( StampedDetectedObjects detectedObjects, String senderName) {
+        this.sender = senderName;
+        this.time = detectedObjects.getTime();
+        this.detectedObjects = detectedObjects;
+        
     }
-
-    public int getCameraId() {
-        return cameraId;
+    public String getSender() {
+        return sender;
     }
 
     public int getTime() {
         return time;
     }
 
-    public List<String> getDetectedObjects() {
+    public StampedDetectedObjects getDetectedObjects() {
         return detectedObjects;
     }
 }

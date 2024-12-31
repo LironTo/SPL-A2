@@ -1,7 +1,13 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.TrackedObject;
+import bgu.spl.mics.application.messages.DetectObjectEvent;
 import bgu.spl.mics.MicroService;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * LiDarService is responsible for processing data from the LiDAR sensor and
@@ -12,7 +18,9 @@ import bgu.spl.mics.MicroService;
  * observations.
  */
 public class LiDarService extends MicroService {
-    LiDarWorkerTracker LiDarWorkerTracker;
+    private LiDarWorkerTracker liderworkertracker;
+    private ArrayList<DetectObjectEvent> detectObjectEventsList;
+
     /**
      * Constructor for LiDarService.
      *
@@ -20,7 +28,8 @@ public class LiDarService extends MicroService {
      */
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
         super("LiDarWorkerService");
-        this.LiDarWorkerTracker = LiDarWorkerTracker;
+        this.liderworkertracker = LiDarWorkerTracker;
+        this.detectObjectEventsList = new ArrayList<DetectObjectEvent>();
     }
 
     /**
@@ -28,28 +37,34 @@ public class LiDarService extends MicroService {
      * Registers the service to handle DetectObjectsEvents and TickBroadcasts,
      * and sets up the necessary callbacks for processing data.
      */
+
     @Override
     protected void initialize() {
-        subscribeEvent(DetectObjectsEvent.class, detectObjectsEvent -> {
-            int tick = detectObjectsEvent.getTick();
-            LiDarWorkerTracker.processData(tick);
-            TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(LiDarWorkerTracker.getTrackedObjects());
-            sendEvent(trackedObjectsEvent);
+        subscribeEvent(DetectObjectEvent.class, (DetectObjectEvent detectObjectsEvent) -> {
+            detectObjectEventsList.add(detectObjectsEvent);
         });
-
+    
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
             int tick = tickBroadcast.getTick();
             if (tick == -1) {
                 terminate();
             }
+            else{
+                for (DetectObjectEvent detectObjectEvent : detectObjectEventsList) {
+                    if (tick==detectObjectEvent.getTime()+liderworkertracker.getFrequency()) {
+                        List<TrackedObject> tracked= liderworkertracker.processData(detectObjectEvent.getDetectedObjects());
+                        TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(tracked, getName());
+                        
+                    }
+                }
+            }
         });
-
-        subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
+    
+        subscribeBroadcast(TerminatedBroadcast.class, termBroad -> {
             terminate();
         });
-
-        subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
+    
+        subscribeBroadcast(CrashedBroadcast.class, crashBroad -> {
             terminate();
         });
     }
-}

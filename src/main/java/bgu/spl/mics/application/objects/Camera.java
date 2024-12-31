@@ -31,11 +31,11 @@ public class Camera {
     public void setStatus(STATUS status) { this.status = status; }
     public void addStampedDetectedObject(StampedDetectedObjects stampedDetectedObjects) { detectedObjectsList.add(stampedDetectedObjects); }
 
-    public List<DetectedObject> getDetectedObjects(int time) {
-        List<DetectedObject> detectedObjects = new LinkedList<DetectedObject>();
+    public StampedDetectedObjects getDetectedObjects(int time) {
+        StampedDetectedObjects detectedObjects = null;
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
             if (stampedDetectedObjects.getTime() == time) {
-                detectedObjects = stampedDetectedObjects.getDetectedObjects();
+                detectedObjects = stampedDetectedObjects;
             }
         }
         return detectedObjects;

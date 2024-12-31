@@ -2,7 +2,6 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.MicroService;
-import bgu.spl.mics.MessageBusImpl;
 
 /**
  * CameraService is responsible for processing data from the camera and
@@ -13,6 +12,7 @@ import bgu.spl.mics.MessageBusImpl;
  */
 public class CameraService extends MicroService {
     private Camera camera;
+    
 
     /**
      * Constructor for CameraService.
@@ -40,12 +40,9 @@ public class CameraService extends MicroService {
                 terminate();
             } else {
                 // Detect objects and send DetectObjectsEvents
-                camera.getDetectedObjects(tick).forEach(object -> {
-                    sendEvent(new DetectObjectsEvent(object));
-                });
+                sendEvent(new DetectObjectEvent(camera.getDetectedObjects(tick), getName()));
             }
         });
-
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
             terminate();
         });

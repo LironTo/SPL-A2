@@ -109,7 +109,7 @@ public <T> Future<T> sendEvent(Event<T> e) {
     }
 
     // Add the event to the MicroService's message queue
-    microServiceQueue.computeIfAbsent(m, k -> new LinkedBlockingQueue<>());
+    //microServiceQueue.computeIfAbsent(m, k -> new LinkedBlockingQueue<>());
     try {
         microServiceQueue.get(m).put(e);
     } catch (InterruptedException ex) {

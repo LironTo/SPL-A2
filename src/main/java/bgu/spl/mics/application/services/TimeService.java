@@ -26,7 +26,29 @@ public class TimeService extends MicroService {
      * Starts broadcasting TickBroadcast messages and terminates after the specified duration.
      */
     @Override
-    protected void initialize() {
-        // TODO Implement this
+protected void initialize() {
+    // Subscribe to broadcasts for termination or crashes
+    subscribeBroadcast(CrashedBroadcast.class, crashBroadcast -> terminate());
+    subscribeBroadcast(TerminatedBroadcast.class, termBroadcast -> terminate());
+
+    // Start ticking directly in this thread
+    for (int tick = 0; tick <= Duration; tick++) {
+        // Broadcast the current tick
+        sendBroadcast(new TickBroadcast(tick));
+
+        // Sleep for the tick duration
+        try {
+            Thread.sleep(TickTime);
+        } catch (InterruptedException e) {
+            Thread.currentThread().interrupt(); // Respect interruptions
+            break; // Exit the loop gracefully
+        }
+
+        // Terminate the service when the final tick is reached
+        if (tick == Duration) {
+            sendBroadcast(new TickBroadcast(-1)); // Indicate end of simulation
+            terminate();
+        }
     }
+}
 }

@@ -13,4 +13,7 @@ public class FusionSlam {
         private List<LandMark> landmarks;
         private List<Pose> poses;
     }
+
+    //TODO: Implement the FusionSlam class
+    //TODO: update pose and update map
 }

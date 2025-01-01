@@ -23,4 +23,7 @@ public class LiDarWorkerTracker {
     public int getFrequency() { return frequency; }
     public STATUS getStatus() { return status; }
     public List<TrackedObject> getLastTrackedObjects() { return lastTrackedObjects; }
+
+    //TODO: Implement the LiDarWorkerTracker class
+    //TODO: processData
 }

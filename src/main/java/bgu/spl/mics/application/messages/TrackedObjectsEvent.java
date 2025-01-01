@@ -5,7 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import bgu.spl.mics.Event;
 import bgu.spl.mics.application.objects.TrackedObject;
 
-public class TrackedObjectsEvent implements Event<List<TrackedObject>> {
+public class TrackedObjectsEvent implements Event<Boolean> {
     private String sender;
     private final CopyOnWriteArrayList<TrackedObject> serials;
 

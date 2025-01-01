@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*; // Ensure PoseEvent is in this package or update the package path
 import bgu.spl.mics.application.objects.FusionSlam;
+import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.MicroService;
 
 /**
@@ -30,8 +32,9 @@ public class FusionSlamService extends MicroService {
     @Override
     protected void initialize() {
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent -> {
-            List<TrackedObject> trackedObjects = trackedObjectsEvent.getTrackedObjects();
-            fusionSlam.updateMap(trackedObjects);
+            List<TrackedObject> trackedObjects = trackedObjectsEvent.getSerials();
+            StampedDetectedObjects stamped = new StampedDetectedObjects(trackedObjects);
+            fusionSlam.updateMap(stamped);
         });
 
         subscribeEvent(PoseEvent.class, poseEvent -> {

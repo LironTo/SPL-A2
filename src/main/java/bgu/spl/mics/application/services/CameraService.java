@@ -1,6 +1,12 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.Camera;
+import bgu.spl.mics.application.objects.DetectedObject;
+import bgu.spl.mics.application.objects.STATUS;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
+
+import java.util.List;
+
 import bgu.spl.mics.MicroService;
 
 /**
@@ -39,15 +45,19 @@ public class CameraService extends MicroService {
             if (tick == -1) {
                 terminate();
             } else {
-                // Detect objects and send DetectObjectsEvents
-                sendEvent(new DetectObjectEvent(camera.getDetectedObjects(tick), getName()));
+                StampedDetectedObjects stamped = camera.getDetectedObjects(tick);
+                if(stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
+                sendEvent(new DetectObjectEvent(stamped, getName()));
+                }
             }
         });
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
+            camera.setStatus(STATUS.DOWN);
             terminate();
         });
 
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
+            camera.setStatus(STATUS.ERROR);
             terminate();
         });
     }

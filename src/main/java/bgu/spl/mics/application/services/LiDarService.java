@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.TrackedObject;
 import bgu.spl.mics.application.messages.DetectObjectEvent;
@@ -20,6 +21,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 public class LiDarService extends MicroService {
     private LiDarWorkerTracker liderworkertracker;
     private ArrayList<DetectObjectEvent> detectObjectEventsList;
+    private LiDarDataBase dataBase;
 
     /**
      * Constructor for LiDarService.
@@ -30,6 +32,7 @@ public class LiDarService extends MicroService {
         super("LiDarWorkerService");
         this.liderworkertracker = LiDarWorkerTracker;
         this.detectObjectEventsList = new ArrayList<DetectObjectEvent>();
+        this.dataBase = LiDarDataBase.getInstance();
     }
 
     /**
@@ -52,8 +55,9 @@ public class LiDarService extends MicroService {
             else{
                 for (DetectObjectEvent detectObjectEvent : detectObjectEventsList) {
                     if (tick==detectObjectEvent.getTime()+liderworkertracker.getFrequency()) {
-                        List<TrackedObject> tracked= liderworkertracker.processData(detectObjectEvent.getDetectedObjects());
+                        List<TrackedObject> tracked= liderworkertracker.processData(tick, detectObjectEvent.getDetectedObjects().getDetectedObjects(), dataBase);
                         TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(tracked, getName());
+                        sendEvent(trackedObjectsEvent);
                         
                     }
                 }

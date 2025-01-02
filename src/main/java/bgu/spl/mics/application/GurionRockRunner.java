@@ -81,7 +81,7 @@ public class GurionRockRunner {
         threads.add(new Thread(fusionSlamService));
     
         // Pose Service
-        GPSIMU gpsimu = new GPSIMU(configuration.getPoseJsonFile());
+        GPSIMU gpsimu = GPSIMU.getInstance(configuration.getPoseJsonFile());
         PoseService poseService = new PoseService(gpsimu);
         threads.add(new Thread(poseService));
     

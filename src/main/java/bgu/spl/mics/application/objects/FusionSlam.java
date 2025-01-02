@@ -30,15 +30,16 @@ public class FusionSlam {
     public void updateMap(List<TrackedObject> trackedObjects) {
         for (TrackedObject trackedObject : trackedObjects) {
             int lmIndex = checkIfLMExists(trackedObject.getId());
+            LandMark newLandmark = null;
             if (lmIndex == -1) {
-                LandMark newLandmark = new LandMark(trackedObject.getId(), trackedObject.getDescription());
-                List<CloudPoint> coordinates = trackedObject.getCoordinates();
-                for (CloudPoint coordinate : coordinates) {
-                    newLandmark.addCoordinate(coordinate);
-                }
-                landmarks.add(newLandmark);
+                newLandmark = new LandMark(trackedObject.getId(), trackedObject.getDescription());
             } else {
-                landmarks.get(lmIndex).addCoordinate(trackedObject.getCoordinate());
+                newLandmark = landmarks.get(lmIndex);
+            }
+
+            List<CloudPoint> coordinates = trackedObject.getCoordinates();
+            for (CloudPoint coordinate : coordinates) {
+                addCoordinateToLandmark(newLandmark, coordinate, trackedObject.getTime());
             }
         }
     }
@@ -53,21 +54,43 @@ public class FusionSlam {
     }
 
     private void addCoordinateToLandmark(LandMark landmark, CloudPoint coordinate, int time) {
-        Runnable addCoordinate = () -> {
-            landmark.addCoordinate(coordinate);
-        };
+        new Thread(()->{
+            Pose pose = checkIfPoseExists(time);
+            while (pose == null) {
+                try {
+                    Thread.sleep(100);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+                pose = checkIfPoseExists(time);
+            }
+            landmark.addCoordinate(correctedCP(coordinate, pose));
+        }).start();
     }
 
-    private boolean checkIfPoseExists(int time) {
+    private Pose checkIfPoseExists(int time) {
         for (Pose pose : poses) {
             if (pose.getTime() == time) {
-                return true;
+                return pose;
             }
         }
-        return false;
+        return null;
     }
 
-    public void updatePose(Pose pose) {
+    public void addPose(Pose pose) {
         poses.add(pose);
+    }
+
+    public CloudPoint correctedCP(CloudPoint cp, Pose pose) {
+        double theta_rad = Math.toRadians(pose.getYaw());
+        double sin_theta = Math.sin(theta_rad);
+        double cos_theta = Math.cos(theta_rad);
+        double x_local = cp.getX();
+        double y_local = cp.getY();
+        double x_robot = pose.getX();
+        double y_robot = pose.getY();
+        double x_global = cos_theta * x_local - sin_theta * y_local + x_robot;
+        double y_global = sin_theta * x_local + cos_theta * y_local + y_robot;
+        return new CloudPoint(x_global, y_global);
     }
 }

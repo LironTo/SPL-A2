@@ -3,6 +3,7 @@ import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.STATUS;
 
 /**
  * PoseService is responsible for maintaining the robot's current pose (position and orientation)
@@ -43,10 +44,12 @@ public class PoseService extends MicroService {
             }
         });
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
+            gpsimu.setStatus(STATUS.DOWN);
             terminate();
         });
 
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
+            gpsimu.setStatus(STATUS.ERROR);
             terminate();
         });
     }

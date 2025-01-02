@@ -30,6 +30,12 @@ public class LiDarDataBase {
         }
         return instance;
     }
+    public static LiDarDataBase getInstance() {
+        if(instance == null)
+            throw new IllegalStateException("LiDarDataBase was not initialized");
+        return instance;
+
+    }
 
     private void loadData(String filePath) {
         ObjectMapper objectMapper = new ObjectMapper();

@@ -32,8 +32,9 @@ public class Camera {
     public StampedDetectedObjects getDetectedObjects(int time) {
         StampedDetectedObjects detectedObjects = null;
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
-            if (stampedDetectedObjects.getTime() == time) {
+            if (stampedDetectedObjects.getTime() == time+frequency) {
                 detectedObjects = stampedDetectedObjects;
+                break;
             }
         }
         return detectedObjects;

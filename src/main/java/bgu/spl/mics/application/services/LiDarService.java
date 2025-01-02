@@ -68,3 +68,4 @@ public class LiDarService extends MicroService {
             terminate();
         });
     }
+}

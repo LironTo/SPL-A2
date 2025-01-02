@@ -19,6 +19,11 @@ public class FusionSlam {
 
     // Singleton instance holder
     private static class FusionSlamHolder {
+        private static final FusionSlam instance = new FusionSlam();
+        
+
+        
+
         
     }
 }

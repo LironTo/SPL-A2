@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.util.ArrayList;
 import java.util.List;
 
 /**
@@ -24,6 +25,14 @@ public class LiDarWorkerTracker {
     public STATUS getStatus() { return status; }
     public List<TrackedObject> getLastTrackedObjects() { return lastTrackedObjects; }
 
-    //TODO: Implement the LiDarWorkerTracker class
-    //TODO: processData
+    public List<TrackedObject> processData(int tick, List<DetectedObject> detectedObjects, LiDarDataBase dataBase) {
+        List<TrackedObject> trackedObjects = new ArrayList<TrackedObject>();
+
+        for (DetectedObject detectedObject : detectedObjects) {
+            TrackedObject trackedObject = new TrackedObject(detectedObject.getId(), tick, detectedObject.getDescription(), dataBase.getCloudPoints(detectedObject.getId(), tick));
+            trackedObjects.add(trackedObject);
+        }
+
+        return trackedObjects;
+    }
 }

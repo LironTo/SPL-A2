@@ -29,6 +29,11 @@
             <version>5.11.4</version>
             <scope>test</scope>
         </dependency>
+        <dependency>
+            <groupId>com.fasterxml.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>2.13.3</version>
+        </dependency>
   </dependencies>
     <build>
         <plugins>
@@ -54,3 +59,4 @@
         </plugins>
     </build>
 </project>
+<!-- End: pom.xml -->

@@ -10,4 +10,15 @@ public class StatisticalFolder {
     private int numDetectedObjects;
     private int numTrackedObjects;
     private int numLandmarks;
+
+    public StatisticalFolder() {
+        this.systemRuntime = 0;
+        this.numDetectedObjects = 0;
+        this.numTrackedObjects = 0;
+        this.numLandmarks = 0;
+    }
+
+    public void initialize(){
+        // TO DO: Implement this method
+    }
 }

@@ -5,6 +5,14 @@ package bgu.spl.mics.application.objects;
  * It contains information such as the object's ID and description.
  */
 public class DetectedObject {
-    private int id;
-    private String description;
+    private final String id;
+    private final String description;
+
+    public DetectedObject(String id, String description) {
+        this.id = id;
+        this.description = description;
+    }
+
+    public String getId() { return id; }
+    public String getDescription() { return description; }
 }

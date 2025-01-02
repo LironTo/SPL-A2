@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*; // Ensure PoseEvent is in this package or update the package path
 import bgu.spl.mics.application.objects.FusionSlam;
+import bgu.spl.mics.application.objects.TrackedObject;
+import java.util.List;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.MicroService;

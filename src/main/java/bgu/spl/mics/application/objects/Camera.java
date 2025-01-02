@@ -2,8 +2,6 @@ package bgu.spl.mics.application.objects;
 
 import java.util.LinkedList;
 import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.CopyOnWriteArrayList;
 
 /**
  * Represents a camera sensor on the robot.
@@ -20,7 +18,7 @@ public class Camera {
         this.id = id;
         this.frequency = frequency;
         this.status = STATUS.UP;
-        this.detectedObjectsList = new CopyOnWriteArrayList<>();
+        this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
     }
 
     public int getId() { return id; }

@@ -26,7 +26,7 @@ public abstract class MicroService implements Runnable {
 
     private boolean terminated = false;
     private final String name;
-    private final ConcurrentHashMap<Class<? extends Message>, Callback> callbackMap = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<Class<? extends Message>, Callback<?>> callbackMap = new ConcurrentHashMap<>();
     protected final MessageBusImpl messageBus = MessageBusImpl.getInstance();
 
 
@@ -157,23 +157,24 @@ public abstract class MicroService implements Runnable {
      * otherwise you will end up in an infinite loop.
      */
     @Override
-    public void run() {
-        messageBus.register(this);
-        initialize();
-        while (!terminated) {
-            try {
-                Message message = messageBus.awaitMessage(this);
-                if(message != null){
-                    callbackMap.get(message.getClass()).call(message);
-                    // Assuming the result is null for now, you may need to change this based on your logic
-                    messageBus.complete((Event<?>) message, null);
-                }                
-            } catch (InterruptedException e) {
-                e.printStackTrace();
+public void run() {
+    messageBus.register(this);
+    initialize();
+    System.out.println("MicroService " + name + " is running");
+    while (!terminated) {
+        try {
+            Message message = messageBus.awaitMessage(this);
+            if(message!=null){
+                Callback<Message>  callback = (Callback<Message>) callbackMap.get(message.getClass());
+                if(callback!=null){
+                    callback.call(message);
+                }
             }
+        } catch (InterruptedException e) {
+            e.printStackTrace();
         }
-        messageBus.unregister(this);
-        
     }
 
+    messageBus.unregister(this);
+}
 }

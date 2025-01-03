@@ -1,5 +1,3 @@
-package bgu.spl.mics.tests;
-
 import bgu.spl.mics.*;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;

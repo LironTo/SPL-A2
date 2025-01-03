@@ -28,21 +28,27 @@ public class FusionSlam {
     public List<Pose> getPoses() { return poses; }
 
     public void updateMap(List<TrackedObject> trackedObjects) {
+        System.out.println("FusionSlam: Updating map with " + trackedObjects.size() + " tracked objects.");
         for (TrackedObject trackedObject : trackedObjects) {
             int lmIndex = checkIfLMExists(trackedObject.getId());
             LandMark newLandmark = null;
             if (lmIndex == -1) {
+                System.out.println("FusionSlam: Creating new landmark for ID: " + trackedObject.getId());
                 newLandmark = new LandMark(trackedObject.getId(), trackedObject.getDescription());
+                landmarks.add(newLandmark);
+                StatisticalFolder.getInstance().addOneLandmark();
             } else {
                 newLandmark = landmarks.get(lmIndex);
             }
-
+    
             List<CloudPoint> coordinates = trackedObject.getCoordinates();
             for (CloudPoint coordinate : coordinates) {
                 addCoordinateToLandmark(newLandmark, coordinate, trackedObject.getTime());
             }
         }
     }
+    
+    
 
     private int checkIfLMExists(String id) {
         for (int i = 0; i < landmarks.size(); i++) {
@@ -54,9 +60,11 @@ public class FusionSlam {
     }
 
     private void addCoordinateToLandmark(LandMark landmark, CloudPoint coordinate, int time) {
-        new Thread(()->{
+        System.out.println("FusionSlam: Attempting to add coordinate to landmark: " + landmark.getId() + " at time: " + time);
+        new Thread(() -> {
             Pose pose = checkIfPoseExists(time);
             while (pose == null) {
+                System.out.println("FusionSlam: Pose not found for time: " + time + ". Retrying...");
                 try {
                     Thread.sleep(100);
                 } catch (InterruptedException e) {
@@ -64,9 +72,12 @@ public class FusionSlam {
                 }
                 pose = checkIfPoseExists(time);
             }
-            landmark.addCoordinate(correctedCP(coordinate, pose));
+            CloudPoint globalCoordinate = correctedCP(coordinate, pose);
+            landmark.addCoordinate(globalCoordinate);
+            System.out.println("FusionSlam: Added corrected coordinate to landmark: " + landmark.getId());
         }).start();
     }
+    
 
     private Pose checkIfPoseExists(int time) {
         for (Pose pose : poses) {

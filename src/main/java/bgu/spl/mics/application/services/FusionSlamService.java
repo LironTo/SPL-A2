@@ -35,7 +35,10 @@ public class FusionSlamService extends MicroService {
     protected void initialize() {
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent -> {
             List<TrackedObject> trackedObjects = trackedObjectsEvent.getSerials();
-            fusionSlam.updateMap(trackedObjects);
+            if (trackedObjects != null && !trackedObjects.isEmpty()) {
+                fusionSlam.updateMap(trackedObjects);
+            }
+            complete(trackedObjectsEvent, null);
         });
 
         subscribeEvent(PoseEvent.class, poseEvent -> {

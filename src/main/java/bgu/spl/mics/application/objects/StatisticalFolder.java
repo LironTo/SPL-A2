@@ -26,9 +26,11 @@ public class StatisticalFolder {
 
     public void addOneSystemRuntime() { systemRuntime++; }
     public void addOneDetectedObject() { numDetectedObjects++; }
+    public void addManyDetectedObject(int num) { this.numDetectedObjects+= num; }
+    public void addManyTrackedObject(int num) { this.numTrackedObjects+= num; }
     public void addOneTrackedObject() { numTrackedObjects++; }
     public void addOneLandmark() { numLandmarks++; }
 
-    public StatisticalFolder getInstance() { return instance; }
+    public static StatisticalFolder getInstance() { return instance; }
 
 }

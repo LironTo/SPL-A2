@@ -2,6 +2,7 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 import bgu.spl.mics.application.messages.DetectObjectEvent;
 import bgu.spl.mics.MicroService;
@@ -45,6 +46,8 @@ public class LiDarService extends MicroService {
     protected void initialize() {
         subscribeEvent(DetectObjectEvent.class, (DetectObjectEvent detectObjectsEvent) -> {
             detectObjectEventsList.add(detectObjectsEvent);
+            StatisticalFolder.getInstance().addManyTrackedObject(detectObjectsEvent.getDetectedObjects().getDetectedObjects().size());
+            complete(detectObjectsEvent, null);
         });
     
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {

@@ -15,7 +15,7 @@ public class MessageBusImpl implements MessageBus {
 	private static volatile MessageBusImpl instance;
 	private ConcurrentHashMap<MicroService, BlockingQueue<Message>> microServiceQueue = new ConcurrentHashMap<>();
 	private ConcurrentHashMap<Class<? extends Event>, BlockingQueue<MicroService>> eventQueue = new ConcurrentHashMap<>();
-	private ConcurrentHashMap<Class<? extends Broadcast>, CopyOnWriteArrayList<MicroService>> broadcastQueue;
+	private ConcurrentHashMap<Class<? extends Broadcast>, CopyOnWriteArrayList<MicroService>> broadcastQueue= new ConcurrentHashMap<>();
 	private ConcurrentHashMap<Event, Future> futureMap = new ConcurrentHashMap<>();
 
 

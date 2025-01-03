@@ -4,6 +4,7 @@ import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 
 import java.util.List;
 
@@ -46,7 +47,8 @@ public class CameraService extends MicroService {
                 terminate();
             } else {
                 StampedDetectedObjects stamped = camera.getDetectedObjects(tick);
-                if(stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
+                if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
+                StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());
                 sendEvent(new DetectObjectEvent(stamped, getName()));
                 }
             }

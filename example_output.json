@@ -1,7 +1,7 @@
 {
-  "systemRuntime": 0,
+  "systemRuntime": 31,
   "numDetectedObjects": 13,
-  "numTrackedObjects": 13,
+  "numTrackedObjects": 7,
   "numLandmarks": 0,
   "landMarks": {}
 }

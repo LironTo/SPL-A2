@@ -164,6 +164,7 @@ public void run() {
     while (!terminated) {
         try {
             Message message = messageBus.awaitMessage(this);
+            System.out.println("MicroService " + name + " received message from" + message.getClass().getName());
             if(message!=null){
                 Callback<Message>  callback = (Callback<Message>) callbackMap.get(message.getClass());
                 if(callback!=null){

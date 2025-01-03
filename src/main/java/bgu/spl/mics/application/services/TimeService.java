@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.MicroService;
 
 /**
@@ -34,6 +35,7 @@ protected void initialize() {
     // Start ticking directly in this thread
     for (int tick = 0; tick <= Duration; tick++) {
         // Broadcast the current tick
+        StatisticalFolder.getInstance().addOneSystemRuntime();
         sendBroadcast(new TickBroadcast(tick));
 
         // Sleep for the tick duration

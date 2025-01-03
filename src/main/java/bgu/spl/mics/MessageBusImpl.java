@@ -89,6 +89,7 @@ public void sendBroadcast(Broadcast b) {
 	
 @Override
 public <T> Future<T> sendEvent(Event<T> e) {
+	System.out.println("EventBus: Sending event " + e.getClass().getSimpleName());
     BlockingQueue<MicroService> subscribers = eventQueue.get(e.getClass());
     if (subscribers == null || subscribers.isEmpty()) {
         // No MicroService is subscribed to this event
@@ -150,6 +151,7 @@ public <T> Future<T> sendEvent(Event<T> e) {
 
 	@Override
 	public Message awaitMessage(MicroService m) throws InterruptedException {
+		System.out.println("EventBus: " + m.getName() + " waiting for a message...");
 		BlockingQueue<Message> queue = microServiceQueue.get(m);
 		if (queue == null) {
 			throw new IllegalStateException("Failed to await message: " + m + " - no queue found");

@@ -3,42 +3,45 @@ package bgu.spl.mics.application.objects;
 import java.util.List;
 
 public class config {
-    private Cameras cameras;
-    private LidarWorkers lidarWorkers;
+    private Cameras Cameras;
+    private LidarWorkers LidarWorkers;
     private String poseJsonFile;
-    private int tickTime;
-    private int duration;
+    private int TickTime;
+    private int Duration;
 
-    public Cameras getCameras() { return cameras; }
-    public LidarWorkers getLidarWorkers() { return lidarWorkers; }
+    public Cameras getCameras() { return Cameras; }
+    public LidarWorkers getLidarWorkers() { return LidarWorkers; }
     public String getPoseJsonFile() { return poseJsonFile; }
-    public int getTickTime() { return tickTime; }
-    public int getDuration() { return duration; }
+    public int getTickTime() { return TickTime; }
+    public int getDuration() { return Duration; }
+    public void setPoseJsonFilePrev(String path) { this.poseJsonFile = path + poseJsonFile.substring(1); }
 
     public static class Cameras {
-        private List<CameraConfiguration> camerasConfigurations;
-        private String cameraDatasPath;
+        private List<CameraConfiguration> CamerasConfigurations;
+        private String camera_datas_path;
 
-        public List<CameraConfiguration> getCamerasConfigurations() { return camerasConfigurations; }
-        public String getCameraDatasPath() { return cameraDatasPath; }
+        public List<CameraConfiguration> getCamerasConfigurations() { return CamerasConfigurations; }
+        public String getCameraDatasPath() { return camera_datas_path; }
+        public void setCameraDatasPathPrev(String path) { this.camera_datas_path = path + camera_datas_path.substring(1); }
     }
 
     public static class LidarWorkers {
-        private List<LidarConfiguration> lidarConfigurations;
-        private String lidarsDataPath;
+        private List<LidarConfiguration> LidarConfigurations;
+        private String lidars_data_path;
 
-        public List<LidarConfiguration> getLidarConfigurations() { return lidarConfigurations; }
-        public String getLidarsDataPath() { return lidarsDataPath; }
+        public List<LidarConfiguration> getLidarConfigurations() { return LidarConfigurations; }
+        public String getLidarsDataPath() { return lidars_data_path; }
+        public void setLidarsDataPathPrev(String path) { this.lidars_data_path = path + lidars_data_path.substring(1); }
     }
 
     public static class CameraConfiguration {
         private int id;
         private int frequency;
-        private String cameraKey;
+        private String camera_key;
 
         public int getId() { return id; }
         public int getFrequency() { return frequency; }
-        public String getCameraKey() { return cameraKey; }
+        public String getCameraKey() { return camera_key; }
     }
 
     public static class LidarConfiguration {

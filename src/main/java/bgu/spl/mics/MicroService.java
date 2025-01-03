@@ -165,7 +165,8 @@ public abstract class MicroService implements Runnable {
                 Message message = messageBus.awaitMessage(this);
                 if(message != null){
                     callbackMap.get(message.getClass()).call(message);
-                    messageBus.complete(message, );
+                    // Assuming the result is null for now, you may need to change this based on your logic
+                    messageBus.complete((Event<?>) message, null);
                 }                
             } catch (InterruptedException e) {
                 e.printStackTrace();

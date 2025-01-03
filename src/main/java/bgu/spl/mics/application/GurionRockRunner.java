@@ -46,22 +46,26 @@ public class GurionRockRunner {
     public static void main(String[] args) {
         Gson gson = new Gson();
         config configuration;
+        String folderAddress = "./example input/";
     
         // Step 1: Parse the Configuration File
-        try (FileReader reader = new FileReader("configurations_file.json")) {
+        try (FileReader reader = new FileReader(folderAddress+"configuration_file.json")) {
             configuration = gson.fromJson(reader, config.class);
+            System.out.println();
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
     
         // Step 2: Initialize LiDarDataBase
+        configuration.getLidarWorkers().setLidarsDataPathPrev(folderAddress);
         LiDarDataBase lidarDatabase = LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
     
         // Step 3: Initialize Services
         List<Thread> threads = new ArrayList<>();
     
         // Camera Services
+        configuration.getCameras().setCameraDatasPathPrev(folderAddress);
         for (config.CameraConfiguration camConfig : configuration.getCameras().getCamerasConfigurations()) {
             Camera camera = new Camera(camConfig.getId(), camConfig.getFrequency());
             CameraService cameraService = new CameraService(camera);
@@ -81,6 +85,7 @@ public class GurionRockRunner {
         threads.add(new Thread(fusionSlamService));
     
         // Pose Service
+        configuration.setPoseJsonFilePrev(folderAddress);
         GPSIMU gpsimu = GPSIMU.getInstance(configuration.getPoseJsonFile());
         PoseService poseService = new PoseService(gpsimu);
         threads.add(new Thread(poseService));
@@ -95,18 +100,15 @@ public class GurionRockRunner {
         }
     }
     
-    
-
-// Utility Method to Parse JSON Files
-private static <T> List<T> parseJson(String filePath, Class<T> clazz) {
-    Gson gson = new Gson();
-    try (FileReader reader = new FileReader(filePath)) {
-        Type type = TypeToken.getParameterized(List.class, clazz).getType();
-        return gson.fromJson(reader, type);
-    } catch (Exception e) {
-        e.printStackTrace();
-        return new ArrayList<>();
+    // Utility Method to Parse JSON Files
+    private static <T> List<T> parseJson(String filePath, Class<T> clazz) {
+        Gson gson = new Gson();
+        try (FileReader reader = new FileReader(filePath)) {
+            Type type = TypeToken.getParameterized(List.class, clazz).getType();
+            return gson.fromJson(reader, type);
+        } catch (Exception e) {
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
     }
-}
-
 }

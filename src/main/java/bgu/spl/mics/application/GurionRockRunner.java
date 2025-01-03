@@ -1,11 +1,14 @@
 package bgu.spl.mics.application;
 
 import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import bgu.spl.mics.application.objects.Camera;
 
 import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,9 +19,12 @@ import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.Pose;
+import bgu.spl.mics.application.objects.SimulationOutput;
 import bgu.spl.mics.application.objects.StampedCloudPoints;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;  // Update this to the correct class if it exists
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.GPSIMU;  // Assuming the GPSIMU class is in this package
+import bgu.spl.mics.application.objects.LandMark;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.config;  // Assuming the config class is in this package
 import bgu.spl.mics.application.services.CameraService;
@@ -98,17 +104,49 @@ public class GurionRockRunner {
         for (Thread thread : threads) {
             thread.start();
         }
-    }
-    
-    // Utility Method to Parse JSON Files
-    private static <T> List<T> parseJson(String filePath, Class<T> clazz) {
-        Gson gson = new Gson();
-        try (FileReader reader = new FileReader(filePath)) {
-            Type type = TypeToken.getParameterized(List.class, clazz).getType();
-            return gson.fromJson(reader, type);
-        } catch (Exception e) {
+        // Step 5: Wait for all threads to complete
+    for (Thread thread : threads) {
+        try {
+            thread.join();
+        } catch (InterruptedException e) {
             e.printStackTrace();
-            return new ArrayList<>();
         }
     }
+
+    // Step 6: Generate the output file
+    String outputFilePath = "./example input/output_file.json";
+    new GurionRockRunner().generateOutput(outputFilePath);
+    }
+    
+    private void generateOutput(String outputFilePath) {
+        SimulationOutput output = new SimulationOutput();
+    
+        // Set statistics
+        output.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
+        output.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
+        output.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
+        output.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
+    
+        // Add landmarks
+        FusionSlam fusionSlam = FusionSlam.getInstance();
+        List<LandMark> landmarks = fusionSlam.getLandmarks();
+        for (LandMark landmark : landmarks) {
+            SimulationOutput.Landmark outputLandmark = new SimulationOutput.Landmark(
+                landmark.getId(),
+                landmark.getDescription(),
+                landmark.getCoordinates() // Ensure this matches the expected type in SimulationOutput
+            );
+            output.landMarks.put(landmark.getId(), outputLandmark);
+        }
+    
+        // Write to JSON file
+        try (FileWriter writer = new FileWriter(outputFilePath)) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(output, writer);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+    }
+    
+
 }

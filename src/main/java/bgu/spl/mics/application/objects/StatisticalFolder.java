@@ -24,9 +24,13 @@ public class StatisticalFolder {
     public int getNumTrackedObjects() { return numTrackedObjects; }
     public int getNumLandmarks() { return numLandmarks; }
 
-    public void addOneSystemRuntime() { systemRuntime++; }
+    public void addOneSystemRuntime() { 
+        System.out.println("Adding one system runtime");
+        systemRuntime++; }
     public void addOneDetectedObject() { numDetectedObjects++; }
-    public void addManyDetectedObject(int num) { this.numDetectedObjects+= num; }
+    public void addManyDetectedObject(int num) { 
+        System.out.println("Adding " + num + " detected objects");
+        this.numDetectedObjects+= num; }
     public void addManyTrackedObject(int num) { this.numTrackedObjects+= num; }
     public void addOneTrackedObject() { numTrackedObjects++; }
     public void addOneLandmark() { numLandmarks++; }

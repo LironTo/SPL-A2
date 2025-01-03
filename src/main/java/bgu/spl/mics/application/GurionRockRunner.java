@@ -53,80 +53,129 @@ public class GurionRockRunner {
         Gson gson = new Gson();
         config configuration;
         String folderAddress = "./example input/";
-    
-        // Step 1: Parse the Configuration File
-        try (FileReader reader = new FileReader(folderAddress+"configuration_file.json")) {
+        String outputFilePath = "./example_output.json";  // Path for output JSON
+
+        // Step 1: Parse Configuration File
+        try (FileReader reader = new FileReader(folderAddress + "configuration_file.json")) {
             configuration = gson.fromJson(reader, config.class);
-            System.out.println();
+            System.out.println("Configuration loaded successfully.");
         } catch (Exception e) {
             e.printStackTrace();
             return;
         }
-    
+
         // Step 2: Initialize LiDarDataBase
         configuration.getLidarWorkers().setLidarsDataPathPrev(folderAddress);
         LiDarDataBase lidarDatabase = LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
-    
+        System.out.println("LiDarDataBase initialized with path: " + configuration.getLidarWorkers().getLidarsDataPath());
+
         // Step 3: Initialize Services
         List<Thread> threads = new ArrayList<>();
-    
-        // Camera Services
-        configuration.getCameras().setCameraDatasPathPrev(folderAddress);
-        for (config.CameraConfiguration camConfig : configuration.getCameras().getCamerasConfigurations()) {
-            Camera camera = new Camera(camConfig.getId(), camConfig.getFrequency());
-            CameraService cameraService = new CameraService(camera);
-            threads.add(new Thread(cameraService));
+        initializeCameraServices(configuration, folderAddress, threads);
+        initializeLiDarServices(configuration, threads);
+        initializeFusionSlamService(threads);
+        initializePoseService(configuration, folderAddress, threads);
+        initializeTimeService(configuration, threads);
+
+        // Step 4: Start All Threads
+        for (Thread thread : threads) {
+            thread.start();
         }
-    
-        // LiDAR Services
+
+        // Step 5: Wait for Threads to Finish
+        for (Thread thread : threads) {
+            try {
+                thread.join();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        }
+
+        // Step 6: Generate Output
+        generateOutput(outputFilePath);
+        System.out.println("Simulation output written to: " + outputFilePath);
+    }
+
+    private static void initializeCameraServices(config configuration, String folderAddress, List<Thread> threads) {
+        configuration.getCameras().setCameraDatasPathPrev(folderAddress);
+        Map<String, List<StampedDetectedObjects>> cameraData = null;
+
+        // Load camera data
+        try (FileReader reader = new FileReader(configuration.getCameras().getCameraDatasPath())) {
+            Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
+            cameraData = new Gson().fromJson(reader, mapType);
+            System.out.println("Loaded camera data successfully.");
+        } catch (IOException e) {
+            e.printStackTrace();
+            System.err.println("Failed to load camera data.");
+            return;
+        }
+
+        // Initialize cameras
+for (config.CameraConfiguration camConfig : configuration.getCameras().getCamerasConfigurations()) {
+    Camera camera = new Camera(camConfig.getId(), camConfig.getFrequency());
+    String cameraKey = camConfig.getCameraKey();
+
+    if (cameraData != null && cameraData.containsKey(cameraKey)) {
+        List<StampedDetectedObjects> detectedObjects = cameraData.get(cameraKey);
+
+        // Debugging: Print detected objects loaded for the camera
+        System.out.println("Loading detected objects for camera: " + cameraKey);
+        for (StampedDetectedObjects stampedDetectedObjects : detectedObjects) {
+            if (stampedDetectedObjects.getDetectedObjects() == null || stampedDetectedObjects.getDetectedObjects().isEmpty()) {
+                System.out.println("Warning: DetectedObjects is null or empty for time: " + stampedDetectedObjects.getTime());
+            } else {
+                System.out.println("Loaded detected objects for time: " + stampedDetectedObjects.getTime() +
+                    ", size: " + stampedDetectedObjects.getDetectedObjects().size());
+            }
+            camera.addStampedDetectedObject(stampedDetectedObjects);
+        }
+        System.out.println("Assigned detected objects to camera: " + cameraKey);
+    } else {
+        System.out.println("No detected objects found for camera: " + cameraKey);
+    }
+
+    CameraService cameraService = new CameraService(camera);
+    threads.add(new Thread(cameraService));
+}
+
+    }
+
+    private static void initializeLiDarServices(config configuration, List<Thread> threads) {
         for (config.LidarConfiguration lidarConfig : configuration.getLidarWorkers().getLidarConfigurations()) {
             LiDarWorkerTracker lidarWorker = new LiDarWorkerTracker(lidarConfig.getId(), lidarConfig.getFrequency());
             LiDarService lidarService = new LiDarService(lidarWorker);
             threads.add(new Thread(lidarService));
         }
-    
-        // FusionSLAM Service
-        FusionSlam fusionSlam= FusionSlam.getInstance();
+    }
+
+    private static void initializeFusionSlamService(List<Thread> threads) {
+        FusionSlam fusionSlam = FusionSlam.getInstance();
         FusionSlamService fusionSlamService = new FusionSlamService(fusionSlam);
         threads.add(new Thread(fusionSlamService));
-    
-        // Pose Service
+    }
+
+    private static void initializePoseService(config configuration, String folderAddress, List<Thread> threads) {
         configuration.setPoseJsonFilePrev(folderAddress);
         GPSIMU gpsimu = GPSIMU.getInstance(configuration.getPoseJsonFile());
         PoseService poseService = new PoseService(gpsimu);
         threads.add(new Thread(poseService));
-    
-        // Time Service
-        TimeService timeService = new TimeService(configuration.getTickTime(), configuration.getDuration());
-        threads.add(new Thread(timeService));
-    
-        // Step 4: Start All Threads
-        for (Thread thread : threads) {
-            thread.start();
-        }
-        // Step 5: Wait for all threads to complete
-    for (Thread thread : threads) {
-        try {
-            thread.join();
-        } catch (InterruptedException e) {
-            e.printStackTrace();
-        }
     }
 
-    // Step 6: Generate the output file
-    String outputFilePath = "./example input/output_file.json";
-    new GurionRockRunner().generateOutput(outputFilePath);
+    private static void initializeTimeService(config configuration, List<Thread> threads) {
+        TimeService timeService = new TimeService(configuration.getTickTime(), configuration.getDuration());
+        threads.add(new Thread(timeService));
     }
-    
-    private void generateOutput(String outputFilePath) {
+
+    private static void generateOutput(String outputFilePath) {
         SimulationOutput output = new SimulationOutput();
-    
+
         // Set statistics
         output.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
         output.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
         output.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
         output.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
-    
+
         // Add landmarks
         FusionSlam fusionSlam = FusionSlam.getInstance();
         List<LandMark> landmarks = fusionSlam.getLandmarks();
@@ -134,11 +183,11 @@ public class GurionRockRunner {
             SimulationOutput.Landmark outputLandmark = new SimulationOutput.Landmark(
                 landmark.getId(),
                 landmark.getDescription(),
-                landmark.getCoordinates() // Ensure this matches the expected type in SimulationOutput
+                landmark.getCoordinates()
             );
             output.landMarks.put(landmark.getId(), outputLandmark);
         }
-    
+
         // Write to JSON file
         try (FileWriter writer = new FileWriter(outputFilePath)) {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
@@ -147,6 +196,6 @@ public class GurionRockRunner {
             e.printStackTrace();
         }
     }
-    
+
 
 }

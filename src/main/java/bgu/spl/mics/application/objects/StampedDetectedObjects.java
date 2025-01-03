@@ -8,11 +8,11 @@ import java.util.List;
  */
 public class StampedDetectedObjects {
     private final int time;
-    private List<DetectedObject> DetectedObjects;
+    private List<DetectedObject> detectedObjects;
 
     public StampedDetectedObjects(int time, List<DetectedObject> DetectedObjects) {
         this.time = time;
-        this.DetectedObjects = DetectedObjects;
+        this.detectedObjects = DetectedObjects;
     }
 
     public int getTime() {
@@ -20,6 +20,6 @@ public class StampedDetectedObjects {
     }
 
     public List<DetectedObject> getDetectedObjects() {
-        return DetectedObjects;
+        return detectedObjects;
     }
 }

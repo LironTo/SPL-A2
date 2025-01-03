@@ -19,24 +19,30 @@ public class Camera {
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
+        System.out.println("Camera initialized with an empty detectedObjectsList");
     }
 
     public int getId() { return id; }
     public int getFrequency() { return frequency; }
     public STATUS getStatus() { return status; }
-    public List<StampedDetectedObjects> getDetectedObjectsList() { return detectedObjectsList; }
+    public List<StampedDetectedObjects> getDetectedObjectsList() {System.out.println("Camera: Retrieving detected objects for tick: " + detectedObjectsList.get(0).getTime());
+     return detectedObjectsList; }
 
     public void setStatus(STATUS status) { this.status = status; }
     public void addStampedDetectedObject(StampedDetectedObjects stampedDetectedObjects) { detectedObjectsList.add(stampedDetectedObjects); }
 
     public StampedDetectedObjects getDetectedObjects(int time) {
-        StampedDetectedObjects detectedObjects = null;
+        System.out.println("Searching detected objects for time: " + time + ", frequency: " + frequency);
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
-            if (stampedDetectedObjects.getTime() == time+frequency) {
-                detectedObjects = stampedDetectedObjects;
-                break;
+            int objectTime = stampedDetectedObjects.getTime();
+            if (objectTime == time || objectTime == time + frequency) {  // Adjust logic here
+                System.out.println("Found matching detected object for time: " + time + ", objectTime: " + objectTime);
+                return stampedDetectedObjects;
             }
         }
-        return detectedObjects;
+        System.out.println("No matching detected object found for time: " + time);
+        return null;
     }
+    
 }
+    

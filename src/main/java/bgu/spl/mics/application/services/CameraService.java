@@ -7,6 +7,7 @@ import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import bgu.spl.mics.MicroService;
 
@@ -26,8 +27,8 @@ public class CameraService extends MicroService {
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera) {
-        super("CameraService");
+    public CameraService(Camera camera, CountDownLatch latch) {
+        super("CameraService", latch);
         this.camera = camera;
 
        
@@ -54,6 +55,10 @@ public class CameraService extends MicroService {
                     sendEvent(new DetectObjectEvent(stamped, getName()));
                 }
             }
+            if (tickBroadcast.getLatch() != null) {
+                tickBroadcast.getLatch().countDown();
+                System.out.println(getName() + ": Acknowledged Tick " + tick);
+            }
         });
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
             camera.setStatus(STATUS.DOWN);
@@ -64,5 +69,9 @@ public class CameraService extends MicroService {
             camera.setStatus(STATUS.ERROR);
             terminate();
         });
+         // Count down the latch after initialization
+    if (latch != null) {
+        latch.countDown();
+    }
     }
 }

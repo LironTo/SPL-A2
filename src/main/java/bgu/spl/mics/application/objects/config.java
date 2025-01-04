@@ -51,4 +51,10 @@ public class config {
         public int getId() { return id; }
         public int getFrequency() { return frequency; }
     }
+    public static int calculateNumberOfServices(config configuration) {
+        int cameraServices = configuration.getCameras().getCamerasConfigurations().size();
+        int lidarServices = configuration.getLidarWorkers().getLidarConfigurations().size();
+        int fixedServices = 2; // Fixed services like TimeService and FusionSlamService
+        return cameraServices + lidarServices + fixedServices;
+    }
 }

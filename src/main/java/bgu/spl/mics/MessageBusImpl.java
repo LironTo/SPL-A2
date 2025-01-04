@@ -103,7 +103,7 @@ public <T> Future<T> sendEvent(Event<T> e) {
             // Re-add the MicroService to the end of the queue
             subscribers.offer(m);
         }
-    }
+     }
     if (m == null) {
         // This shouldn't happen if the queue is properly managed
         return null;

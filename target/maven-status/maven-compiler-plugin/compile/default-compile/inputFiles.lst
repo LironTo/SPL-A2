@@ -15,7 +15,6 @@ C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\messages\TerminatedBroadcast.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\Future.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\LiDarDataBase.java
-C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\tests\CameraServiceTest.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\services\PoseService.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\GPSIMU.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\TrackedObject.java
@@ -23,6 +22,7 @@ C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\messages\TrackedObjectsEvent.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\LandMark.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\MessageBus.java
+C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\SimulationOutput.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\Pose.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\example\services\ExampleEventHandlerService.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\FusionSlam.java
@@ -31,7 +31,6 @@ C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\Broadcast.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\GurionRockRunner.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\MicroService.java
-C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\tests\MessageBusImplTest.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\Message.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\example\ExampleManager.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\messages\TickBroadcast.java
@@ -40,7 +39,6 @@ C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\services\LiDarService.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\Camera.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\example\services\ExampleBroadcastListenerService.java
-C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\tests\FusionSlamServiceTest.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\objects\DetectedObject.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\services\FusionSlamService.java
 C:\Users\chene\OneDrive\Documents\3rd Semester\SPL\SPL-A2\src\main\java\bgu\spl\mics\application\messages\CrashedBroadcast.java

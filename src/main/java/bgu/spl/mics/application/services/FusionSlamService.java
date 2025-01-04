@@ -3,6 +3,7 @@ import bgu.spl.mics.application.messages.*; // Ensure PoseEvent is in this packa
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.TrackedObject;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.MicroService;
@@ -21,8 +22,8 @@ public class FusionSlamService extends MicroService {
      *
      * @param fusionSlam The FusionSLAM object responsible for managing the global map.
      */
-    public FusionSlamService(FusionSlam fusionSlam) {
-    super("FusionSlamService");
+    public FusionSlamService(FusionSlam fusionSlam, CountDownLatch latch) {
+    super("FusionSlamService", latch);
         this.fusionSlam = fusionSlam;
     }
 
@@ -53,6 +54,10 @@ public class FusionSlamService extends MicroService {
             if (tick == -1) {
                 terminate();
             }
+            if (tickBroadcast.getLatch() != null) {
+                tickBroadcast.getLatch().countDown();
+                System.out.println(getName() + ": Acknowledged Tick " + tick);
+            }
         });
 
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
@@ -62,5 +67,9 @@ public class FusionSlamService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
             terminate();
         });
+         // Count down the latch after initialization
+    if (latch != null) {
+        latch.countDown();
+    }
     }
 }

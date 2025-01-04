@@ -9,6 +9,7 @@ import bgu.spl.mics.MicroService;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.CountDownLatch;
 
 /**
  * LiDarService is responsible for processing data from the LiDAR sensor and
@@ -28,8 +29,8 @@ public class LiDarService extends MicroService {
      *
      * @param LiDarWorkerTracker A LiDAR Tracker worker object that this service will use to process data.
      */
-    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker) {
-        super("LiDarWorkerService");
+    public LiDarService(LiDarWorkerTracker LiDarWorkerTracker, CountDownLatch latch) {
+        super("LiDarWorkerService", latch);
         this.liderworkertracker = LiDarWorkerTracker;
         this.detectObjectEventsList = new ArrayList<DetectObjectEvent>();
         this.dataBase = LiDarDataBase.getInstance();
@@ -74,6 +75,10 @@ public class LiDarService extends MicroService {
                     }
                 }
             }
+            if (tickBroadcast.getLatch() != null) {
+                tickBroadcast.getLatch().countDown();
+                System.out.println(getName() + ": Acknowledged Tick " + tick);
+            }
         });
         
     
@@ -84,5 +89,9 @@ public class LiDarService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, crashBroad -> {
             terminate();
         });
+         // Count down the latch after initialization
+    if (latch != null) {
+        latch.countDown();
+    }
     }
 }

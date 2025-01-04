@@ -79,40 +79,61 @@ public void sendBroadcast(Broadcast b) {
         for (MicroService m : subscribers) {
             // Ensure the MicroService has a message queue
             microServiceQueue.computeIfAbsent(m, k -> new LinkedBlockingQueue<>());
-            // Add the broadcast message to the MicroService's queue
-            microServiceQueue.get(m).add(b);
+
+            try {
+                // Add the broadcast message to the MicroService's queue
+                microServiceQueue.get(m).put(b); // Using put to block if the queue is full
+                System.out.println("Broadcast " + b.getClass().getSimpleName() + " sent to " + m.getName());
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt(); // Restore interrupt status
+                System.err.println("Failed to send broadcast to " + m.getName());
+            }
         }
+    } else {
+        System.out.println("No subscribers for broadcast " + b.getClass().getSimpleName());
     }
 }
+
 
 
 	
 @Override
 public <T> Future<T> sendEvent(Event<T> e) {
-	System.out.println("EventBus: Sending event " + e.getClass().getSimpleName());
+    System.out.println("EventBus: Sending event " + e.getClass().getSimpleName());
+
     BlockingQueue<MicroService> subscribers = eventQueue.get(e.getClass());
     if (subscribers == null || subscribers.isEmpty()) {
-        // No MicroService is subscribed to this event
-        return null;
-    }
-    MicroService m;
-    synchronized (subscribers) {
-        // Poll the next MicroService in round-robin fashion
-        m = subscribers.poll();
-        if (m != null) {
-            // Re-add the MicroService to the end of the queue
-            subscribers.offer(m);
-        }
-     }
-    if (m == null) {
-        // This shouldn't happen if the queue is properly managed
+        System.out.println("EventBus: No subscribers found for event " + e.getClass().getSimpleName());
         return null;
     }
 
-    // Add the event to the MicroService's message queue
-    //microServiceQueue.computeIfAbsent(m, k -> new LinkedBlockingQueue<>());
+    MicroService m;
+    synchronized (subscribers) {
+        m = subscribers.poll(); // Poll the next MicroService in round-robin fashion
+        if (m != null) {
+            subscribers.offer(m); // Re-add the MicroService to the end of the queue
+        }
+    }
+
+    if (m == null) {
+        System.out.println("EventBus: Unexpected state: No MicroService selected for event " + e.getClass().getSimpleName());
+        return null;
+    }
+
+    // Log the selected MicroService for the event
+    System.out.println("EventBus: Sending event " + e.getClass().getSimpleName() + " to " + m.getName());
+
     try {
-        microServiceQueue.get(m).put(e);
+        // Add the event to the MicroService's message queue
+        BlockingQueue<Message> microServiceMessages = microServiceQueue.get(m);
+        if (microServiceMessages == null) {
+            throw new IllegalStateException("Failed to send event: " + e.getClass().getSimpleName() + " - queue not found for MicroService " + m.getName());
+        }
+
+        microServiceMessages.put(e);
+
+        // Log the state of the queue after adding the event
+        System.out.println("EventBus: Queue size for " + m.getName() + " after adding event: " + microServiceMessages.size());
     } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
         throw new IllegalStateException("Failed to send event: " + e, ex);
@@ -122,9 +143,12 @@ public <T> Future<T> sendEvent(Event<T> e) {
     Future<T> future = new Future<>();
     futureMap.put(e, future);
 
-    // Return the Future
+    // Log the creation of the Future
+    System.out.println("EventBus: Future created for event " + e.getClass().getSimpleName());
+
     return future;
 }
+
 
 
 	@Override
@@ -150,14 +174,25 @@ public <T> Future<T> sendEvent(Event<T> e) {
 	
 
 	@Override
-	public Message awaitMessage(MicroService m) throws InterruptedException {
-		System.out.println("EventBus: " + m.getName() + " waiting for a message...");
-		BlockingQueue<Message> queue = microServiceQueue.get(m);
-		if (queue == null) {
-			throw new IllegalStateException("Failed to await message: " + m + " - no queue found");
-		}
-		return queue.take();
-	}
+public Message awaitMessage(MicroService m) throws InterruptedException {
+    System.out.println("EventBus: " + m.getName() + " waiting for a message...");
+
+    BlockingQueue<Message> queue = microServiceQueue.get(m);
+    if (queue == null) {
+        throw new IllegalStateException("Failed to await message: " + m.getName() + " - no queue found");
+    }
+
+    // Log the state of the queue before taking the message
+    System.out.println("EventBus: Queue size for " + m.getName() + " before taking message: " + queue.size());
+
+    Message message = queue.take();
+
+    // Log the message that was dequeued
+    System.out.println("EventBus: " + m.getName() + " received message: " + message.getClass().getSimpleName());
+
+    return message;
+}
+
 
 	
 

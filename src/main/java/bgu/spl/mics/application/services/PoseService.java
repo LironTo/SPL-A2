@@ -1,5 +1,8 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
+
+import java.util.concurrent.CountDownLatch;
+
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
@@ -17,8 +20,8 @@ public class PoseService extends MicroService {
      *
      * @param gpsimu The GPSIMU object that provides the robot's pose data.
      */
-    public PoseService(GPSIMU gpsimu) {
-        super("PoseService");
+    public PoseService(GPSIMU gpsimu, CountDownLatch latch) {
+        super("PoseService", latch);
         this.gpsimu = gpsimu;
     }
 
@@ -42,6 +45,10 @@ public class PoseService extends MicroService {
                     sendEvent(poseEvent);
                 }
             }
+            if (tickBroadcast.getLatch() != null) {
+                tickBroadcast.getLatch().countDown();
+                System.out.println(getName() + ": Acknowledged Tick " + tick);
+            }
         });
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
             gpsimu.setStatus(STATUS.DOWN);
@@ -52,5 +59,9 @@ public class PoseService extends MicroService {
             gpsimu.setStatus(STATUS.ERROR);
             terminate();
         });
+         // Count down the latch after initialization
+    if (latch != null) {
+        latch.countDown();
+    }
     }
 }

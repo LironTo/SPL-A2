@@ -2,6 +2,7 @@ package bgu.spl.mics;
 
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  * <p>
  */
 public abstract class MicroService implements Runnable {
-
+    protected CountDownLatch latch;
     private boolean terminated = false;
     private final String name;
     private final ConcurrentHashMap<Class<? extends Message>, Callback<?>> callbackMap = new ConcurrentHashMap<>();
@@ -34,8 +35,9 @@ public abstract class MicroService implements Runnable {
      * @param name the micro-service name (used mainly for debugging purposes -
      *             does not have to be unique)
      */
-    public MicroService(String name) {
+    public MicroService(String name, CountDownLatch latch) {
         this.name = name;
+        this.latch = latch;
 
     }
 
@@ -160,6 +162,9 @@ public abstract class MicroService implements Runnable {
 public void run() {
     messageBus.register(this);
     initialize();
+    if(latch!=null){
+        latch.countDown();
+    }
     System.out.println("MicroService " + name + " is running");
     while (!terminated) {
         try {

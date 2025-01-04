@@ -52,7 +52,11 @@ public class CameraService extends MicroService {
                 if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
                     System.out.println("Detected " + stamped.getDetectedObjects().size() + " objects");
                     StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());
-                    sendEvent(new DetectObjectEvent(stamped, getName()));
+                    if(stamped.isError()){
+                        sendBroadcast(new CrashedBroadcast(getName()));
+                        terminate();
+                    }
+                    else if(!stamped.isError()){sendEvent(new DetectObjectEvent(stamped, getName()));}
                 }
             }
             if (tickBroadcast.getLatch() != null) {

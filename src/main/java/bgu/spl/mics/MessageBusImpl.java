@@ -35,10 +35,16 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		// Ensure thread-safe initialization of the event queue
-		eventQueue.computeIfAbsent(type, k -> new java.util.concurrent.LinkedBlockingQueue<>());
+		if(eventQueue.containsKey(type)){
+            eventQueue.get(type).add(m);
+        }
+        else{ 
+            eventQueue.put(type, new LinkedBlockingQueue<>());
+            eventQueue.get(type).add(m); 
+        }
 	
 		// Add the MicroService to the queue of subscribers for the given event type
-		eventQueue.get(type).add(m); // Use add instead of put
+		// Use add instead of put
 	}
 	
 	

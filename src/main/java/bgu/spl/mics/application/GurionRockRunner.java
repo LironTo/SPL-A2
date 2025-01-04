@@ -78,14 +78,15 @@ public class GurionRockRunner {
         initializeLiDarServices(configuration, threads, initLatch);
         initializeFusionSlamService(threads, initLatch);
         initializePoseService(configuration, folderAddress, threads, initLatch);
-
         // Initialize TimeService
-        initializeTimeService(configuration, threads, initLatch, numberOfServices);
 
         // Step 4: Start All Threads
         for (Thread thread : threads) {
             thread.start();
         }
+       Thread timeservice= new Thread(initializeTimeService(configuration, threads, initLatch, numberOfServices));
+        timeservice.start();
+
 
         // Step 5: Wait for Threads to Finish
         for (Thread thread : threads) {
@@ -165,9 +166,9 @@ public class GurionRockRunner {
         threads.add(new Thread(poseService));
     }
 
-    private static void initializeTimeService(config configuration, List<Thread> threads, CountDownLatch initLatch, int numberOfServices) {
+    private static TimeService initializeTimeService(config configuration, List<Thread> threads, CountDownLatch initLatch, int numberOfServices) {
         TimeService timeService = new TimeService(configuration.getTickTime(), configuration.getDuration(), initLatch, numberOfServices);
-        threads.add(new Thread(timeService));
+        return timeService;
     }
 
     private static void generateOutput(String outputFilePath) {

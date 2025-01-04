@@ -60,7 +60,7 @@ public class LiDarService extends MicroService {
             } else {
                 System.out.println("LiDarWorkerService: Tick received: " + tick);
                 for (DetectObjectEvent detectObjectEvent : detectObjectEventsList) {
-                    if (tick == detectObjectEvent.getTime() + liderworkertracker.getFrequency()) {
+                    if (tick >= detectObjectEvent.getTime() + liderworkertracker.getFrequency()) {
                         System.out.println("LiDarWorkerService: Processing DetectObjectEvent for tick: " + tick);
                         List<TrackedObject> tracked = liderworkertracker.processData(
                             tick, 

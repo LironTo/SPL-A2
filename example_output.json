@@ -2,6 +2,12 @@
   "systemRuntime": 31,
   "numDetectedObjects": 13,
   "numTrackedObjects": 13,
-  "numLandmarks": 0,
-  "landMarks": {}
+  "numLandmarks": 1,
+  "landMarks": {
+    "Wall_1": {
+      "id": "Wall_1",
+      "description": "Wall",
+      "coordinates": []
+    }
+  }
 }

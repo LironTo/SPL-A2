@@ -28,4 +28,11 @@ public class StampedCloudPoints {
     public List<CloudPoint> getCloudPoints() {
         return cloudPoints;
     }
+
+    public boolean isError() {
+        if(this.id=="ERROR"){
+            return true;
+        }
+        return false;
+    }
 }

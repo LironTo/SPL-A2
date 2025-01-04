@@ -1,5 +1,4 @@
 package bgu.spl.mics.application.objects;
-import java.util.LinkedList;
 import java.util.List;
 /**
  * Represents an object tracked by the LiDAR.

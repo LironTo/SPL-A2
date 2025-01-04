@@ -22,4 +22,12 @@ public class StampedDetectedObjects {
     public List<DetectedObject> getDetectedObjects() {
         return detectedObjects;
     }
+    public boolean isError(){
+        for(DetectedObject detectedObject: detectedObjects){
+            if(detectedObject.getId().equals("ERROR")){
+                return true;
+            }
+        }
+        return false;
+    }
 }

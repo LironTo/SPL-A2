@@ -74,9 +74,9 @@ public class GurionRockRunner {
         CountDownLatch initLatch = new CountDownLatch(numberOfServices);
 
         // Initialize each service
+        initializeFusionSlamService(threads, initLatch);
         initializeCameraServices(configuration, folderAddress, threads, initLatch);
         initializeLiDarServices(configuration, threads, initLatch);
-        initializeFusionSlamService(threads, initLatch);
         initializePoseService(configuration, folderAddress, threads, initLatch);
         // Initialize TimeService
 

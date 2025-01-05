@@ -89,13 +89,13 @@ public class GurionRockRunner {
 
 
         // Step 5: Wait for Threads to Finish
-        for (Thread thread : threads) {
+       for (Thread thread : threads) {
             try {
-                thread.join();
-            } catch (InterruptedException e) {
+                 thread.join();
+           } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+       }
 
         // Step 6: Generate Output
         generateOutput(outputFilePath);

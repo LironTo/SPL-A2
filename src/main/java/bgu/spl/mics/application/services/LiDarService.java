@@ -2,9 +2,11 @@ package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
 import bgu.spl.mics.MicroService;
+import bgu.spl.mics.Tuple;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +23,7 @@ import java.util.concurrent.CountDownLatch;
  */
 public class LiDarService extends MicroService {
     private LiDarWorkerTracker liderworkertracker;
-    private ArrayList<DetectObjectEvent> detectObjectEventsList;
+    private List<Tuple<Integer, StampedDetectedObjects>> allocTimeSDObjects;
     private LiDarDataBase dataBase;
 
     /**
@@ -32,7 +34,7 @@ public class LiDarService extends MicroService {
     public LiDarService(LiDarWorkerTracker LiDarWorkerTracker, CountDownLatch latch) {
         super("LiDarWorkerService", latch);
         this.liderworkertracker = LiDarWorkerTracker;
-        this.detectObjectEventsList = new ArrayList<DetectObjectEvent>();
+        this.allocTimeSDObjects = new ArrayList<Tuple<Integer, StampedDetectedObjects>>();
         this.dataBase = LiDarDataBase.getInstance();
     }
 
@@ -47,7 +49,12 @@ public class LiDarService extends MicroService {
         subscribeEvent(DetectObjectEvent.class, (DetectObjectEvent detectObjectsEvent) -> {
             System.out.println("LiDarWorkerService: Received DetectObjectEvent at time: " + detectObjectsEvent.getTime());
             System.out.println("Detected objects size: " + detectObjectsEvent.getDetectedObjects().getDetectedObjects().size());
-            detectObjectEventsList.add(detectObjectsEvent);
+
+            allocTimeSDObjects.add(new Tuple<Integer,StampedDetectedObjects>(
+                Math.max(detectObjectsEvent.getTime()+detectObjectsEvent.getCameraFreq(), 
+                detectObjectsEvent.getTime()+liderworkertracker.getFrequency()), 
+                detectObjectsEvent.getDetectedObjects())); // Max{T + F} , StampedDetectedObjects
+
             StatisticalFolder.getInstance().addManyTrackedObject(detectObjectsEvent.getDetectedObjects().getDetectedObjects().size());
             complete(detectObjectsEvent, null);
         });
@@ -59,19 +66,16 @@ public class LiDarService extends MicroService {
                 terminate();
             } else {
                 System.out.println("LiDarWorkerService: Tick received: " + tick);
-                for (DetectObjectEvent detectObjectEvent : detectObjectEventsList) {
-                    if (tick >= detectObjectEvent.getTime() + liderworkertracker.getFrequency()) {
-                        System.out.println("LiDarWorkerService: Processing DetectObjectEvent for tick: " + tick);
-                        List<TrackedObject> tracked = liderworkertracker.processData(
-                            tick, 
-                            detectObjectEvent.getDetectedObjects().getDetectedObjects(), 
-                            dataBase
-                        );
-                        System.out.println("LiDarWorkerService: Sending TrackedObjectsEvent with " + tracked.size() + " tracked objects.");
-                        TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(tracked, getName());
-                        sendEvent(trackedObjectsEvent);
+                for (int i = 0; i < allocTimeSDObjects.size(); i++) {
+                    if (allocTimeSDObjects.get(i).getFirst() == tick) {
+                        StampedDetectedObjects stamped = allocTimeSDObjects.get(i).getSecond();
+                        System.out.println("LiDarWorkerService: Sending TrackedObjectsEvent with " + stamped.getDetectedObjects().size() + " objects");
+                        List<TrackedObject> trackedObjects = liderworkertracker.processData(tick, stamped.getDetectedObjects(), dataBase);
+                        TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(trackedObjects, ("LiDar worker " + liderworkertracker.getId()));
                         System.out.println("LiDarWorkerService: Sent TrackedObjectsEvent at tick: " + tick);
-
+                        allocTimeSDObjects.remove(i);
+                        i--;
+                        sendEvent(trackedObjectsEvent);
                     }
                 }
             }

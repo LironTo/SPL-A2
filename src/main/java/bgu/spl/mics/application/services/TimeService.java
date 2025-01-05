@@ -48,7 +48,7 @@ public class TimeService extends MicroService {
         }
     
         for (int tick = 0; tick <= Duration; tick++) {
-            
+
             // Create a latch for this tick
             StatisticalFolder.getInstance().addOneSystemRuntime();
             CountDownLatch tickLatch = new CountDownLatch(numberOfServices);
@@ -56,7 +56,14 @@ public class TimeService extends MicroService {
             // Share the latch for the current tick
             TickBroadcast tickBroadcast = new TickBroadcast(tick, tickLatch);
             sendBroadcast(tickBroadcast);
-    
+            
+            try {
+                Thread.sleep(1000);
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+                break;
+            }
+
             long startTime = System.currentTimeMillis();
             try {
                 tickLatch.await(); // Wait for all services to finish their work for this tick

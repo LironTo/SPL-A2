@@ -89,13 +89,13 @@ public class GurionRockRunner {
 
 
         // Step 5: Wait for Threads to Finish
-        for (Thread thread : threads) {
+       for (Thread thread : threads) {
             try {
-                thread.join();
-            } catch (InterruptedException e) {
+                 thread.join();
+           } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-        }
+       }
 
         // Step 6: Generate Output
         generateOutput(outputFilePath);
@@ -173,29 +173,46 @@ public class GurionRockRunner {
 
     private static void generateOutput(String outputFilePath) {
         SimulationOutput output = new SimulationOutput();
-
+    
+        // Collect statistics
         output.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
         output.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
         output.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
         output.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
-
+    
         FusionSlam fusionSlam = FusionSlam.getInstance();
         List<LandMark> landmarks = fusionSlam.getLandmarks();
+    
+        // Process landmarks
         for (LandMark landmark : landmarks) {
+            if (landmark == null || landmark.getCoordinates() == null) {
+                System.err.println("Skipped a null landmark or one with null coordinates.");
+                continue; // Skip invalid landmarks
+            }
+    
+            // Safely create the SimulationOutput.Landmark
             SimulationOutput.Landmark outputLandmark = new SimulationOutput.Landmark(
                 landmark.getId(),
                 landmark.getDescription(),
                 landmark.getCoordinates()
             );
-            System.out.println("Landmark: " + landmark.getId() + ", " + landmark.getDescription() + ", " + landmark.getCoordinates().size());
+    
+            // Log the processed landmark
+            System.out.println("Landmark: " + landmark.getId() + ", " 
+                + landmark.getDescription() + ", Coordinates size: " 
+                + landmark.getCoordinates().size());
             output.landMarks.put(landmark.getId(), outputLandmark);
         }
-
+    
+        // Serialize the SimulationOutput object
         try (FileWriter writer = new FileWriter(outputFilePath)) {
-            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            Gson gson = new GsonBuilder()
+                .setPrettyPrinting()
+                .create();
             gson.toJson(output, writer);
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
+    
 }

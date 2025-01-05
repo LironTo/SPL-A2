@@ -42,9 +42,11 @@ public class FusionSlam {
             }
     
             List<CloudPoint> coordinates = trackedObject.getCoordinates();
-            for (CloudPoint coordinate : coordinates) {
-                addCoordinateToLandmark(newLandmark, coordinate, trackedObject.getTime());
-            }
+            if(coordinates!=null&&!coordinates.isEmpty()){
+                for (CloudPoint coordinate : coordinates) {
+                 addCoordinateToLandmark(newLandmark, coordinate, trackedObject.getTime());
+              }
+        }
         }
     }
     

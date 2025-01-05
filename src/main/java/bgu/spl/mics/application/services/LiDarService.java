@@ -61,6 +61,7 @@ public class LiDarService extends MicroService {
         
     
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
+            latch= tickBroadcast.getLatch();
             int tick = tickBroadcast.getTick();
             if (tick == -1) {
                 terminate();
@@ -93,9 +94,10 @@ public class LiDarService extends MicroService {
         subscribeBroadcast(CrashedBroadcast.class, crashBroad -> {
             terminate();
         });
+        if (latch != null) {
+            latch.countDown();
+            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+        }
          // Count down the latch after initialization
-    if (latch != null) {
-        latch.countDown();
-    }
     }
 }

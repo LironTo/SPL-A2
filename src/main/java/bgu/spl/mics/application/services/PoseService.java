@@ -33,6 +33,7 @@ public class PoseService extends MicroService {
     protected void initialize() {
         // Subscribing to TickBroadcast
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
+            latch= tickBroadcast.getLatch();
             int tick = tickBroadcast.getTick();
             if (tick == -1) {
                 // Terminate the service when the tick indicates shutdown
@@ -59,9 +60,10 @@ public class PoseService extends MicroService {
             gpsimu.setStatus(STATUS.ERROR);
             terminate();
         });
+        if (latch != null) {
+            latch.countDown();
+            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+        }
          // Count down the latch after initialization
-    if (latch != null) {
-        latch.countDown();
-    }
     }
 }

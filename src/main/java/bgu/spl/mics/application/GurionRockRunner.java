@@ -187,6 +187,7 @@ public class GurionRockRunner {
                 landmark.getDescription(),
                 landmark.getCoordinates()
             );
+            System.out.println("Landmark: " + landmark.getId() + ", " + landmark.getDescription() + ", " + landmark.getCoordinates().size());
             output.landMarks.put(landmark.getId(), outputLandmark);
         }
 

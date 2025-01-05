@@ -49,6 +49,7 @@ public class CameraService extends MicroService {
             } else {
                 System.out.println("CameraService: Tick received: " + tick);
                 StampedDetectedObjects stamped = camera.getDetectedObjects(tick);
+                
                 if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
                     System.out.println("Detected " + stamped.getDetectedObjects().size() + " objects");
                     StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());

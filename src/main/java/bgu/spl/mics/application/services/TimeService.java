@@ -48,6 +48,7 @@ public class TimeService extends MicroService {
         }
     
         for (int tick = 0; tick <= Duration; tick++) {
+            
             // Create a latch for this tick
             StatisticalFolder.getInstance().addOneSystemRuntime();
             CountDownLatch tickLatch = new CountDownLatch(numberOfServices);

@@ -25,7 +25,7 @@ public class TimeService extends MicroService {
         super("TimeService", latch);
         this.TickTime = TickTime;
         this.Duration = Duration;
-        this.numberOfServices = numberOfServices-1;
+        this.numberOfServices = numberOfServices;
     }
 
     /**

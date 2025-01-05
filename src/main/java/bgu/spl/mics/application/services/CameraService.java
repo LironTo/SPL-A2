@@ -43,6 +43,7 @@ public class CameraService extends MicroService {
     protected void initialize() {
         // Register to TickBroadcasts
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
+            latch= tickBroadcast.getLatch();
             int tick = tickBroadcast.getTick();
             if (tick == -1) {
                 terminate();
@@ -57,7 +58,9 @@ public class CameraService extends MicroService {
                         sendBroadcast(new CrashedBroadcast(getName()));
                         terminate();
                     }
-                    else if(!stamped.isError()){sendEvent(new DetectObjectEvent(stamped, getName(), this.camera.getFrequency()));}
+                    else if(!stamped.isError()){
+                        int freq= this.camera.getFrequency();
+                        sendEvent(new DetectObjectEvent(stamped, getName(), freq));}
                 }
             }
             if (tickBroadcast.getLatch() != null) {
@@ -74,9 +77,10 @@ public class CameraService extends MicroService {
             camera.setStatus(STATUS.ERROR);
             terminate();
         });
+        if (latch != null) {
+            latch.countDown();
+            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+        }
          // Count down the latch after initialization
-    if (latch != null) {
-        latch.countDown();
-    }
     }
 }

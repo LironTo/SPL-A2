@@ -163,9 +163,6 @@ public abstract class MicroService implements Runnable {
 public void run() {
     messageBus.register(this);
     initialize();
-    if(latch!=null){
-        latch.countDown();
-    }
     System.out.println("MicroService " + name + " is running");
     while (!terminated) {
         try {

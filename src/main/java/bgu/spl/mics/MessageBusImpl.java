@@ -35,13 +35,8 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public <T> void subscribeEvent(Class<? extends Event<T>> type, MicroService m) {
 		// Ensure thread-safe initialization of the event queue
-		if(eventQueue.containsKey(type)){
-            eventQueue.get(type).add(m);
-        }
-        else{ 
-            eventQueue.put(type, new LinkedBlockingQueue<>());
-            eventQueue.get(type).add(m); 
-        }
+        // Atomically create the queue if absent, then add the MicroService
+        eventQueue.computeIfAbsent(type, k -> new LinkedBlockingQueue<>()).add(m);
 	
 		// Add the MicroService to the queue of subscribers for the given event type
 		// Use add instead of put
@@ -52,25 +47,23 @@ public class MessageBusImpl implements MessageBus {
 	@Override
 	public void subscribeBroadcast(Class<? extends Broadcast> type, MicroService m) {
 		// Ensure thread-safe initialization of the broadcast queue
-		broadcastQueue.computeIfAbsent(type, k -> new CopyOnWriteArrayList<>());
-	
-		// Add the MicroService to the queue of subscribers for the given broadcast type
-		broadcastQueue.get(type).add(m); // Use add instead of put
+		broadcastQueue.computeIfAbsent(type, k -> new CopyOnWriteArrayList<>()).add(m);
 
 	}
 
-	@Override
-	public <T> void complete(Event<T> e, T result) {
-		// Get the future associated with the event
-		Future<T> future = futureMap.get(e);
-		if (future == null) {
-			throw new IllegalStateException("Failed to complete event: " + e + " - no future found");
-		}
-	
-		// Resolve the future with the result
-		future.resolve(result);
-
-	}
+    @Override
+    public <T> void complete(Event<T> e, T result) {
+        Future<T> future = futureMap.get(e);
+        if (future == null) {
+            System.err.println("MessageBusImpl: Failed to complete event " + e + " - no future found");
+            throw new IllegalStateException("Failed to complete event: " + e + " - no future found");
+        }
+    
+        future.resolve(result);
+        futureMap.remove(e); // Clean up to prevent memory leaks
+        System.out.println("MessageBusImpl: Completed event " + e);
+    }
+    
 
 @Override
 public void sendBroadcast(Broadcast b) {
@@ -126,31 +119,23 @@ public <T> Future<T> sendEvent(Event<T> e) {
         return null;
     }
 
-    // Log the selected MicroService for the event
+    Future<T> future = new Future<>();
+    futureMap.put(e, future); // Add the future before processing the event
+
     System.out.println("EventBus: Sending event " + e.getClass().getSimpleName() + " to " + m.getName());
 
     try {
-        // Add the event to the MicroService's message queue
         BlockingQueue<Message> microServiceMessages = microServiceQueue.get(m);
         if (microServiceMessages == null) {
             throw new IllegalStateException("Failed to send event: " + e.getClass().getSimpleName() + " - queue not found for MicroService " + m.getName());
         }
 
         microServiceMessages.put(e);
-
-        // Log the state of the queue after adding the event
         System.out.println("EventBus: Queue size for " + m.getName() + " after adding event: " + microServiceMessages.size());
     } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
         throw new IllegalStateException("Failed to send event: " + e, ex);
     }
-
-    // Create and store the Future for this event
-    Future<T> future = new Future<>();
-    futureMap.put(e, future);
-
-    // Log the creation of the Future
-    System.out.println("EventBus: Future created for event " + e.getClass().getSimpleName());
 
     return future;
 }

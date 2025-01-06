@@ -48,8 +48,8 @@ public class GurionRockRunner {
     public static void main(String[] args) {
         Gson gson = new Gson();
         config configuration;
-        String folderAddress = "./example_input_2/";
-        String outputFilePath = "./example_output_2.json"; // Path for output JSON
+        String folderAddress = "./example input/";
+        String outputFilePath = "./example_output.json"; // Path for output JSON
 
         // Step 1: Parse Configuration File
         try (FileReader reader = new FileReader(folderAddress + "configuration_file.json")) {

@@ -51,6 +51,12 @@ public class config {
         public int getId() { return id; }
         public int getFrequency() { return frequency; }
     }
+    public static int getNumberOfCameras(config configuration) {
+        return configuration.getCameras().getCamerasConfigurations().size();
+    }
+    public static int getNumberOfLidarWorkers(config configuration) {
+        return configuration.getLidarWorkers().getLidarConfigurations().size();
+    }
     public static int calculateNumberOfServices(config configuration) {
         int cameraServices = configuration.getCameras().getCamerasConfigurations().size();
         int lidarServices = configuration.getLidarWorkers().getLidarConfigurations().size();

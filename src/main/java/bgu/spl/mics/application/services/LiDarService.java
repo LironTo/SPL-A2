@@ -1,7 +1,9 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
+import bgu.spl.mics.application.objects.Camera;
 import bgu.spl.mics.application.objects.LiDarDataBase;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
+import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
@@ -25,6 +27,7 @@ public class LiDarService extends MicroService {
     private LiDarWorkerTracker liderworkertracker;
     private List<Tuple<Integer, StampedDetectedObjects>> allocTimeSDObjects;
     private LiDarDataBase dataBase;
+    private int Cameraservices;
 
     /**
      * Constructor for LiDarService.
@@ -66,6 +69,7 @@ public class LiDarService extends MicroService {
             if (tick == -1) {
                 terminate();
             } else {
+                if(liderworkertracker.getStatus()==STATUS.UP){
                 System.out.println("LiDarWorkerService: Tick received: " + tick);
                 for (int i = 0; i < allocTimeSDObjects.size(); i++) {
                     if (allocTimeSDObjects.get(i).getFirst() <= tick) {
@@ -73,7 +77,9 @@ public class LiDarService extends MicroService {
 
                         System.out.println("LiDarWorkerService: Sending TrackedObjectsEvent with " + stamped.getDetectedObjects().size() + " objects");
                         List<TrackedObject> trackedObjects = liderworkertracker.processData(tick, stamped.getDetectedObjects());
+                        StatisticalFolder.getInstance().updateLastLiDarFrame(getName(), trackedObjects);
                         TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(trackedObjects, ("LiDar worker " + liderworkertracker.getId()));
+                        StatisticalFolder.getInstance().updateLastLiDarFrame(getName(), trackedObjects);
                         System.out.println("LiDarWorkerService: Sent TrackedObjectsEvent at tick: " + tick);
                         allocTimeSDObjects.remove(i);
                         i--;
@@ -85,13 +91,31 @@ public class LiDarService extends MicroService {
                 tickBroadcast.getLatch().countDown();
                 System.out.println(getName() + ": Acknowledged Tick " + tick);
             }
+        }
+            
+            if(StatisticalFolder.getInstance().isCameraServiceTerminated()&&allocTimeSDObjects.isEmpty()) {
+                sendBroadcast(new TerminatedBroadcast(getName()));
+                liderworkertracker.setStatus(STATUS.DOWN);
+            }
+            if(liderworkertracker.getStatus()==STATUS.ERROR){
+                StatisticalFolder.getInstance().setCrashedOccured(true, getName());
+                sendBroadcast(new CrashedBroadcast(getName()));
+                terminate();
+            }
         });
         
     
         subscribeBroadcast(TerminatedBroadcast.class, termBroad -> {
+            if(termBroad.getTerminatedName().toLowerCase().contains("camera")) {
+                if(StatisticalFolder.getInstance().isCameraServiceTerminated()&&allocTimeSDObjects.isEmpty()) {
+                    StatisticalFolder.getInstance().incementOffLidarServiceCounter();
+                    sendBroadcast(new TerminatedBroadcast(getName()));}
+            }
+        });
+        subscribeBroadcast(FinishRunBroadcast.class, (finishRunBroadcast) -> {
+            // Terminate the service when the FinishRunBroadcast is received
             terminate();
         });
-    
         subscribeBroadcast(CrashedBroadcast.class, crashBroad -> {
             terminate();
         });

@@ -19,9 +19,11 @@ public class GPSIMU {
     private int currentTick;
     private STATUS status;
     private List<Pose> poseList;
+    private int indexpose=0;
 
     private GPSIMU() {
         poseList = new ArrayList<>();
+        status = STATUS.UP;
     }
 
     public static synchronized GPSIMU getInstance(String poseJsonFile) {
@@ -81,8 +83,12 @@ public class GPSIMU {
     }
 
     public Pose getPose(int tick) {
+        if(indexpose==poseList.size()){
+            status=STATUS.DOWN;
+        }
         for (Pose pose : poseList) {
             if (pose.getTime() == tick) {
+                indexpose++;
                 return pose;
             }
         }

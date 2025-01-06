@@ -36,8 +36,7 @@ public class TimeService extends MicroService {
     protected void initialize() {
         // Subscribe to broadcasts for termination or crashes
         subscribeBroadcast(CrashedBroadcast.class, crashBroadcast -> terminate());
-        subscribeBroadcast(TerminatedBroadcast.class, termBroadcast -> terminate());
-    
+        subscribeBroadcast(FinishRunBroadcast.class, finishRunBroadcast -> terminate());
         try {
             System.out.println(getName() + ": Waiting for all services to initialize...");
             latch.await(); // Wait for all services to signal they are ready

@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.MicroService;
 
 /**
@@ -62,7 +63,11 @@ public class FusionSlamService extends MicroService {
         });
 
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
-            terminate();
+            StatisticalFolder stats = StatisticalFolder.getInstance();
+            if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
+                sendBroadcast(new FinishRunBroadcast(getName()));
+                terminate();
+            }
         });
 
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {

@@ -50,31 +50,40 @@ public class CameraService extends MicroService {
             } else {
                 System.out.println("CameraService: Tick received: " + tick);
                 StampedDetectedObjects stamped = camera.getDetectedObjects(tick);
-
-                if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
+                if(camera.getStatus()==STATUS.ERROR){ //only after the methos the status may change
+                    StatisticalFolder.getInstance().setCrashedOccured(true, getName());
+                    sendBroadcast(new CrashedBroadcast(getName()));
+                    terminate();
+                }
+                else if(camera.getStatus()==STATUS.DOWN){
+                    StatisticalFolder.getInstance().incementOffCameraServiceCounter();
+                    sendBroadcast(new TerminatedBroadcast(getName()));
+                    terminate();
+                }
+               else if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
+                    StatisticalFolder.getInstance().updateLastCameraFrame(getName(), stamped);
                     System.out.println("Detected " + stamped.getDetectedObjects().size() + " objects");
                     StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());
-                    if(stamped.isError()){
-                        sendBroadcast(new CrashedBroadcast(getName()));
-                        terminate();
-                    }
-                    else if(!stamped.isError()){
-                        int freq= this.camera.getFrequency();
-                        sendEvent(new DetectObjectEvent(stamped, getName(), freq));}
+                    int freq= this.camera.getFrequency();
+                    StatisticalFolder.getInstance().updateLastCameraFrame(getName(), stamped);
+                    sendEvent(new DetectObjectEvent(stamped, getName(), freq));
                 }
             }
-            if (tickBroadcast.getLatch() != null) {
-                tickBroadcast.getLatch().countDown();
-                System.out.println(getName() + ": Acknowledged Tick " + tick);
-            }
+        if (tickBroadcast.getLatch() != null) {
+            tickBroadcast.getLatch().countDown();
+            System.out.println(getName() + ": Acknowledged Tick " + tick);
+        }
         });
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
-            camera.setStatus(STATUS.DOWN);
+        });
+        subscribeBroadcast(FinishRunBroadcast.class, (finishRunBroadcast) -> {
+            // Terminate the service when the FinishRunBroadcast is received
             terminate();
         });
 
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
-            camera.setStatus(STATUS.ERROR);
+            //StatisticalFolder.getInstance().setCrashedOccured(true, getName());
+           // camera.setStatus(STATUS.ERROR);
             terminate();
         });
         if (latch != null) {

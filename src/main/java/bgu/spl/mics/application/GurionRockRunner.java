@@ -12,12 +12,14 @@ import java.io.IOException;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.SimulationOutput;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;  // Update this to the correct class if it exists
+import bgu.spl.mics.application.objects.SimulationErrorOutPut;  // Assuming the SimulationErrorOutPut class is in this package
 import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.GPSIMU;  // Assuming the GPSIMU class is in this package
 import bgu.spl.mics.application.objects.LandMark;
@@ -70,9 +72,11 @@ public class GurionRockRunner {
 
         // CountDownLatch to synchronize initialization
         int numberOfServices = config.calculateNumberOfServices(configuration);
+        StatisticalFolder statisticalFolder = StatisticalFolder.getInstance();
+        statisticalFolder.setCameras(config.getNumberOfCameras(configuration));
+        statisticalFolder.setLidarservicesCounter(config.getNumberOfLidarWorkers(configuration));
         // Update with the number of services
         CountDownLatch initLatch = new CountDownLatch(numberOfServices);
-
         // Initialize each service
         initializeFusionSlamService(threads, initLatch);
         initializeCameraServices(configuration, folderAddress, threads, initLatch);
@@ -172,6 +176,16 @@ public class GurionRockRunner {
     }
 
     private static void generateOutput(String outputFilePath) {
+        // Check if a crash occurred
+        if (StatisticalFolder.getInstance().isCrashedOccured()) {
+            generateErrorOutput(outputFilePath);
+        } else {
+            generateSuccessOutput(outputFilePath);
+        }
+    }
+    
+    // Method to handle successful simulation output
+    private static void generateSuccessOutput(String outputFilePath) {
         SimulationOutput output = new SimulationOutput();
     
         // Collect statistics
@@ -198,9 +212,6 @@ public class GurionRockRunner {
             );
     
             // Log the processed landmark
-            System.out.println("Landmark: " + landmark.getId() + ", " 
-                + landmark.getDescription() + ", Coordinates size: " 
-                + landmark.getCoordinates().size());
             output.landMarks.put(landmark.getId(), outputLandmark);
         }
     
@@ -215,4 +226,56 @@ public class GurionRockRunner {
         }
     }
     
+// Method to handle error simulation output
+private static void generateErrorOutput(String outputFilePath) {
+    SimulationErrorOutPut errorOutput = new SimulationErrorOutPut();
+
+    // Collect error details
+    errorOutput.error = "Sensor failure detected.";
+    errorOutput.faultySensor = StatisticalFolder.getInstance().getFaultySensor();
+
+    // Get last frames
+    SimulationErrorOutPut.Frames frames = new SimulationErrorOutPut.Frames();
+    frames.cameras = StatisticalFolder.getInstance().getLastCameraFrames();
+    frames.lidar = StatisticalFolder.getInstance().getLastLiDarFrames();
+    errorOutput.lastFrames = frames;
+
+    // Get poses
+    errorOutput.poses = StatisticalFolder.getInstance().getRobotPoses();
+
+    // Collect statistics
+    SimulationErrorOutPut.Statistics stats = new SimulationErrorOutPut.Statistics();
+    stats.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
+    stats.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
+    stats.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
+    stats.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
+
+    // Convert List<LandMark> to Map<String, Landmark>
+    stats.landMarks = new HashMap<>();
+    List<LandMark> landmarks = FusionSlam.getInstance().getLandmarks();
+    for (LandMark landmark : landmarks) {
+        if (landmark != null) {
+            stats.landMarks.put(
+                landmark.getId(),
+                new SimulationErrorOutPut.Landmark(
+                    landmark.getId(),
+                    landmark.getDescription(),
+                    landmark.getCoordinates() // Assuming this is List<CloudPoint>
+                )
+            );
+        }
+    }
+
+    errorOutput.statistics = stats;
+
+    // Serialize the SimulationErrorOutPut object
+    try (FileWriter writer = new FileWriter(outputFilePath)) {
+        Gson gson = new GsonBuilder()
+            .setPrettyPrinting()
+            .create();
+        gson.toJson(errorOutput, writer);
+    } catch (IOException e) {
+        e.printStackTrace();
+    }
+}
 }

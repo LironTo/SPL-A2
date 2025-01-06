@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import java.io.ObjectInputFilter.Status;
 import java.util.LinkedList;
 import java.util.List;
 
@@ -11,6 +12,7 @@ public class Camera {
     private final int id;
     private final int frequency;
     private STATUS status;
+    private int indexCamera=0;
     private List<StampedDetectedObjects> detectedObjectsList;
 
     public Camera(int id, int frequency) {
@@ -29,15 +31,21 @@ public class Camera {
 
     public void setStatus(STATUS status) { this.status = status; }
     public void addStampedDetectedObject(StampedDetectedObjects stampedDetectedObjects) { detectedObjectsList.add(stampedDetectedObjects); }
-
     public StampedDetectedObjects getDetectedObjects(int time) {
+        if(indexCamera==detectedObjectsList.size()){
+            status=STATUS.DOWN;
+        }
         System.out.println("Searching detected objects for time: " + time + ", frequency: " + frequency);
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
+            if(!stampedDetectedObjects.isError()){
             int objectTime = stampedDetectedObjects.getTime();
             if (objectTime == time || objectTime == time + frequency) {  // Adjust logic here
                 System.out.println("Found matching detected object for time: " + time + ", objectTime: " + objectTime);
+                indexCamera++;
                 return stampedDetectedObjects;
             }
+        }
+        else {status=STATUS.ERROR;} 
         }
         System.out.println("No matching detected object found for time: " + time);
         return null;

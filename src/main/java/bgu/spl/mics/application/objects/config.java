@@ -4,13 +4,13 @@ import java.util.List;
 
 public class config {
     private Cameras Cameras;
-    private LidarWorkers LidarWorkers;
+    private LidarWorkers LiDarWorkers;
     private String poseJsonFile;
     private int TickTime;
     private int Duration;
 
     public Cameras getCameras() { return Cameras; }
-    public LidarWorkers getLidarWorkers() { return LidarWorkers; }
+    public LidarWorkers getLidarWorkers() { return LiDarWorkers; }
     public String getPoseJsonFile() { return poseJsonFile; }
     public int getTickTime() { return TickTime; }
     public int getDuration() { return Duration; }

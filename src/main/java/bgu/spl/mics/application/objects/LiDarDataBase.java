@@ -57,11 +57,20 @@ public class LiDarDataBase {
     }
 
     public List<CloudPoint> getCloudPoints(String id, int time) {
-        for (StampedCloudPoints stampedCloudPoints : cloudPoints) {
-            if (stampedCloudPoints.getId().equals(id) && stampedCloudPoints.getTime() == time) {
-                return stampedCloudPoints.getCloudPoints();
+        for(int i = cloudPoints.size()-1; i >= 0; i--) {
+            if(cloudPoints.get(i).getId().equals(id) && cloudPoints.get(i).getTime() <= time){
+                return cloudPoints.get(i).getCloudPoints();
             }
         }
         return null;
+    }
+
+    public int getLatestTime(String id, int time) {
+        for(int i = cloudPoints.size()-1; i >= 0; i--) {
+            if(cloudPoints.get(i).getId().equals(id) && cloudPoints.get(i).getTime() <= time){
+                return cloudPoints.get(i).getTime();
+            }
+        }
+        return -1;
     }
 }

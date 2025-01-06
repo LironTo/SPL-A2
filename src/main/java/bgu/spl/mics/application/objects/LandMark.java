@@ -24,4 +24,5 @@ public class LandMark {
 
     public void setDescription(String description) { this.description = description; }
     public void addCoordinate(CloudPoint coordinate) { Coordinates.add(coordinate); }
+    public void setCoordinate(int index, CloudPoint coordinate) { Coordinates.set(index, coordinate); }
 }

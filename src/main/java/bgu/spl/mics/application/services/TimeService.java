@@ -58,7 +58,7 @@ public class TimeService extends MicroService {
             sendBroadcast(tickBroadcast);
             
             try {
-                Thread.sleep(1000);
+                Thread.sleep(1000 * TickTime);
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt();
                 break;

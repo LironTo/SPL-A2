@@ -68,10 +68,11 @@ public class LiDarService extends MicroService {
             } else {
                 System.out.println("LiDarWorkerService: Tick received: " + tick);
                 for (int i = 0; i < allocTimeSDObjects.size(); i++) {
-                    if (allocTimeSDObjects.get(i).getFirst() == tick) {
+                    if (allocTimeSDObjects.get(i).getFirst() <= tick) {
                         StampedDetectedObjects stamped = allocTimeSDObjects.get(i).getSecond();
+
                         System.out.println("LiDarWorkerService: Sending TrackedObjectsEvent with " + stamped.getDetectedObjects().size() + " objects");
-                        List<TrackedObject> trackedObjects = liderworkertracker.processData(tick, stamped.getDetectedObjects(), dataBase);
+                        List<TrackedObject> trackedObjects = liderworkertracker.processData(tick, stamped.getDetectedObjects());
                         TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(trackedObjects, ("LiDar worker " + liderworkertracker.getId()));
                         System.out.println("LiDarWorkerService: Sent TrackedObjectsEvent at tick: " + tick);
                         allocTimeSDObjects.remove(i);

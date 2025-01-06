@@ -1,0 +1,72 @@
+{
+    "camera1":[
+        {
+            "time": 2,
+            "detectedObjects": [
+                {"id": "Wall_1", "description": "Wall"}
+            ]
+        },
+        {
+            "time": 4,
+            "detectedObjects": [
+                {"id": "Wall_3", "description": "Wall"},
+                {"id": "Chair_Base_1", "description": "Chair Base"}
+            ]
+        },
+        {
+            "time": 6,
+            "detectedObjects": [
+                {"id": "Wall_4", "description": "Wall"},
+                {"id": "Circular_Base_1", "description": "Circular Base"}
+            ]
+        },
+        {
+            "time": 7,
+            "detectedObjects": [
+                {"id": "Door", "description": "Door"}
+            ]
+        },
+        {
+            "time": 8,
+            "detectedObjects": [
+                {"id": "Wall_5", "description": "Wall"}
+            ]
+        },
+        {
+            "time": 10,
+            "detectedObjects": [
+                {"id": "Wall_1", "description": "Wall"}
+            ]
+        },
+        {
+            "time": 12,
+            "detectedObjects": [
+                {"id": "Wall_3", "description": "Wall"}
+            ]
+        },
+        {
+            "time": 14,
+            "detectedObjects": [
+                {"id": "ERROR", "description": "Camera Disconnected"}
+            ]
+        },
+        {
+            "time": 16,
+            "detectedObjects": [
+                {"id": "Wall_4", "description": "Wall"}
+            ]
+        },
+        {
+            "time": 18,
+            "detectedObjects": [
+                {"id": "Chair_Base_1", "description": "Chair Base"}
+            ]
+        },
+        {
+            "time": 20,
+            "detectedObjects": [
+                {"id": "Circular_Base_1", "description": "Circular Base"}
+            ]
+        }
+    ]
+}

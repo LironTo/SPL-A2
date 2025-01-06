@@ -25,14 +25,14 @@ public class LiDarWorkerTracker {
     public STATUS getStatus() { return status; }
     public List<TrackedObject> getLastTrackedObjects() { return lastTrackedObjects; }
 
-    public List<TrackedObject> processData(int tick, List<DetectedObject> detectedObjects, LiDarDataBase dataBase) {
+    public List<TrackedObject> processData(int tick, List<DetectedObject> detectedObjects) {
         List<TrackedObject> trackedObjects = new ArrayList<TrackedObject>();
-
+        LiDarDataBase dataBase = LiDarDataBase.getInstance();
         for (DetectedObject detectedObject : detectedObjects) {
-            TrackedObject trackedObject = new TrackedObject(detectedObject.getId(), tick, detectedObject.getDescription(), dataBase.getCloudPoints(detectedObject.getId(), tick));
+            TrackedObject trackedObject = new TrackedObject(detectedObject.getId(), dataBase.getLatestTime(detectedObject.getId(), tick) , detectedObject.getDescription(), dataBase.getCloudPoints(detectedObject.getId(), tick));
             trackedObjects.add(trackedObject);
         }
-
+        lastTrackedObjects = trackedObjects;
         return trackedObjects;
     }
 }

@@ -32,21 +32,23 @@ public class FusionSlam {
         for (TrackedObject trackedObject : trackedObjects) {
             int lmIndex = checkIfLMExists(trackedObject.getId());
             LandMark newLandmark = null;
-            if (lmIndex == -1) {
+
+            if (lmIndex == -1)
+            {
                 System.out.println("FusionSlam: Creating new landmark for ID: " + trackedObject.getId());
                 newLandmark = new LandMark(trackedObject.getId(), trackedObject.getDescription());
                 landmarks.add(newLandmark);
                 StatisticalFolder.getInstance().addOneLandmark();
-            } else {
+            } 
+            
+            else {
                 newLandmark = landmarks.get(lmIndex);
             }
-    
+
             List<CloudPoint> coordinates = trackedObject.getCoordinates();
             if(coordinates!=null&&!coordinates.isEmpty()){
-                for (CloudPoint coordinate : coordinates) {
-                 addCoordinateToLandmark(newLandmark, coordinate, trackedObject.getTime());
-              }
-        }
+                addCoordinateToLandmark(newLandmark, coordinates, trackedObject.getTime());
+            }
         }
     }
     
@@ -61,22 +63,39 @@ public class FusionSlam {
         return -1;
     }
 
-    private void addCoordinateToLandmark(LandMark landmark, CloudPoint coordinate, int time) {
+    private void addCoordinateToLandmark(LandMark landmark, List<CloudPoint> coordinate, int time) {
         System.out.println("FusionSlam: Attempting to add coordinate to landmark: " + landmark.getId() + " at time: " + time);
+
         new Thread(() -> {
             Pose pose = checkIfPoseExists(time);
             while (pose == null) {
                 System.out.println("FusionSlam: Pose not found for time: " + time + ". Retrying...");
                 try {
-                    Thread.sleep(100);
+                    Thread.sleep(50);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
                 pose = checkIfPoseExists(time);
             }
-            CloudPoint globalCoordinate = correctedCP(coordinate, pose);
-            landmark.addCoordinate(globalCoordinate);
-            System.out.println("FusionSlam: Added corrected coordinate to landmark: " + landmark.getId());
+
+            List<CloudPoint> correctedCoordinates = new LinkedList<>();
+            for(CloudPoint cp : coordinate){ correctedCoordinates.add(correctedCP(cp, pose)); }
+            synchronized (landmark) {
+                if(landmark.getCoordinates().isEmpty()){
+                    for(CloudPoint cp : correctedCoordinates){ landmark.addCoordinate(cp); }
+                }
+                else
+                {
+                    int minLength = Math.min(landmark.getCoordinates().size(), correctedCoordinates.size());
+                    for(int i = 0; i < minLength; i++){
+                        double x = (landmark.getCoordinates().get(i).getX() + correctedCoordinates.get(i).getX())/2;
+                        double y = (landmark.getCoordinates().get(i).getY() + correctedCoordinates.get(i).getY())/2;
+                        landmark.setCoordinate(i, new CloudPoint(x, y));
+                    }
+                }
+
+                System.out.println("FusionSlam: Added corrected coordinate to landmark: " + landmark.getId());
+            }
         }).start();
     }
     

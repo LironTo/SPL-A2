@@ -35,20 +35,23 @@ public class StatisticalFolder {
         this.numLandmarks = 0;
     }
     public void setLidarservicesCounter(int num) { LidarServiceCounter=num; }
-    public void incementOffLidarServiceCounter() { OffLidarServiceCounter++; }
-    public void setPoseTerminated(boolean b) { isPoseTerminated=b; }
+    public void incementOffLidarServiceCounter() { OffLidarServiceCounter++; 
+        System.out.println("incrementing lidar off num to " + OffLidarServiceCounter);}
+    public void setPoseTerminated(boolean b) { isPoseTerminated=b;
+    System.out.println("setting pose termination to"+ b); }
     public void setCrashedOccured(boolean b, String faultySensor ) { CrashedOccured=b; this.faultySensor=faultySensor; }
     public String getFaultySensor() { return faultySensor; }
     public boolean isCrashedOccured() { return CrashedOccured; }
     public boolean isPoseTerminated() { return isPoseTerminated; }
-    public boolean isLidarServiceTerminated() { return LidarServiceCounter==OffLidarServiceCounter; }
+    public boolean isLidarServiceTerminated() { return LidarServiceCounter<=OffLidarServiceCounter; }
     public int getSystemRuntime() { return systemRuntime; }
     public int getNumDetectedObjects() { return numDetectedObjects; }
     public int getNumTrackedObjects() { return numTrackedObjects; }
     public int getNumLandmarks() { return numLandmarks; }
     public void setCameras(int num) { CameraServiceCounter=num; }
-    public void incementOffCameraServiceCounter() { OffCameraServiceCounter++; }    
-    public boolean isCameraServiceTerminated() { return CameraServiceCounter==OffCameraServiceCounter; }
+    public void incementOffCameraServiceCounter() { OffCameraServiceCounter++;
+     System.out.println("incrementing camera off num to " + OffCameraServiceCounter); }    
+    public boolean isCameraServiceTerminated() { return CameraServiceCounter<=OffCameraServiceCounter; }
     public void addOneSystemRuntime() { 
         System.out.println("Adding one system runtime");
         systemRuntime++; }

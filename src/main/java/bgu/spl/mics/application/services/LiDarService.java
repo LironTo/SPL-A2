@@ -86,22 +86,19 @@ public class LiDarService extends MicroService {
                         sendEvent(trackedObjectsEvent);
                     }
                 }
-            }
+            
             if (tickBroadcast.getLatch() != null) {
                 tickBroadcast.getLatch().countDown();
                 System.out.println(getName() + ": Acknowledged Tick " + tick);
             }
         }
-            
-            if(StatisticalFolder.getInstance().isCameraServiceTerminated()&&allocTimeSDObjects.isEmpty()) {
-                sendBroadcast(new TerminatedBroadcast(getName()));
-                liderworkertracker.setStatus(STATUS.DOWN);
-            }
+    
             if(liderworkertracker.getStatus()==STATUS.ERROR){
                 StatisticalFolder.getInstance().setCrashedOccured(true, getName());
                 sendBroadcast(new CrashedBroadcast(getName()));
                 terminate();
             }
+        }
         });
         
     
@@ -109,6 +106,7 @@ public class LiDarService extends MicroService {
             if(termBroad.getTerminatedName().toLowerCase().contains("camera")) {
                 if(StatisticalFolder.getInstance().isCameraServiceTerminated()&&allocTimeSDObjects.isEmpty()) {
                     StatisticalFolder.getInstance().incementOffLidarServiceCounter();
+                    liderworkertracker.setStatus(STATUS.DOWN);
                     sendBroadcast(new TerminatedBroadcast(getName()));}
             }
         });

@@ -56,6 +56,12 @@ public class FusionSlamService extends MicroService {
             if (tick == -1) {
                 terminate();
             }
+            StatisticalFolder stats = StatisticalFolder.getInstance();
+            if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
+                System.out.println("sending finish broadcast");
+                sendBroadcast(new FinishRunBroadcast(getName()));
+                terminate();
+            }
             if (tickBroadcast.getLatch() != null) {
                 tickBroadcast.getLatch().countDown();
                 System.out.println(getName() + ": Acknowledged Tick " + tick);
@@ -65,6 +71,7 @@ public class FusionSlamService extends MicroService {
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
             StatisticalFolder stats = StatisticalFolder.getInstance();
             if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
+                System.out.println("sending finish broadcast");
                 sendBroadcast(new FinishRunBroadcast(getName()));
                 terminate();
             }

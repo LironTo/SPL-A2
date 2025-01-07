@@ -37,15 +37,15 @@ public class Camera {
         }
         System.out.println("Searching detected objects for time: " + time + ", frequency: " + frequency);
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
-            if(!stampedDetectedObjects.isError()){
             int objectTime = stampedDetectedObjects.getTime();
             if (objectTime == time || objectTime == time + frequency) {  // Adjust logic here
+                if(!stampedDetectedObjects.isError()){
                 System.out.println("Found matching detected object for time: " + time + ", objectTime: " + objectTime);
                 indexCamera++;
                 return stampedDetectedObjects;
             }
+            else {status=STATUS.ERROR;} 
         }
-        else {status=STATUS.ERROR;} 
         }
         System.out.println("No matching detected object found for time: " + time);
         return null;

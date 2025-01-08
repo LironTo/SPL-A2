@@ -35,7 +35,9 @@ public class TimeService extends MicroService {
     @Override
     protected void initialize() {
         // Subscribe to broadcasts for termination or crashes
-        subscribeBroadcast(CrashedBroadcast.class, crashBroadcast -> terminate());
+        subscribeBroadcast(CrashedBroadcast.class, crashBroadcast -> {
+            terminate();
+        });
         subscribeBroadcast(FinishRunBroadcast.class, finishRunBroadcast -> terminate());
         try {
             System.out.println(getName() + ": Waiting for all services to initialize...");
@@ -47,9 +49,10 @@ public class TimeService extends MicroService {
         }
     
         for (int tick = 0; tick <= Duration; tick++) {
-
+            System.out.println(getName() + ": Broadcasting tick " + tick);
             // Create a latch for this tick
-            StatisticalFolder.getInstance().addOneSystemRuntime();
+            numberOfServices = StatisticalFolder.getInstance().getNumOfActiveServices();
+            if(numberOfServices == 0) break;
             CountDownLatch tickLatch = new CountDownLatch(numberOfServices);
     
             // Share the latch for the current tick
@@ -89,6 +92,10 @@ public class TimeService extends MicroService {
                     break;
                 }
             }
+
+            StatisticalFolder.getInstance().addOneSystemRuntime();
+            numberOfServices = StatisticalFolder.getInstance().getNumOfActiveServices();
+            if(numberOfServices == 0) break;
         }
     }
     

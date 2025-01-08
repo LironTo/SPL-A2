@@ -68,6 +68,7 @@ public class FusionSlam {
 
         new Thread(() -> {
             Pose pose = checkIfPoseExists(time);
+            int counter = 0;
             while (pose == null) {
                 System.out.println("FusionSlam: Pose not found for time: " + time + ". Retrying...");
                 try {
@@ -76,6 +77,7 @@ public class FusionSlam {
                     e.printStackTrace();
                 }
                 pose = checkIfPoseExists(time);
+                if(counter++ > 20) { Thread.currentThread().interrupt(); }
             }
 
             List<CloudPoint> correctedCoordinates = new LinkedList<>();

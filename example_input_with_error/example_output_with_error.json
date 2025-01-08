@@ -1,37 +1,35 @@
 {
-  "error": "Sensor failure detected.",
-  "faultySensor": "CameraService",
-  "lastFrames": {
-    "cameras": {
-      "CameraService": {
-        "time": 12,
-        "detectedObjects": [
-          {
-            "id": "Wall_3",
-            "description": "Wall"
-          }
-        ]
-      }
-    },
-    "lidar": {
-      "LiDarWorkerService": [
+  "error": "Camera Disconnected",
+  "faultySensor": "camera1",
+  "lastCamerasFrame": {
+    "camera1": {
+      "time": 12,
+      "detectedObjects": [
         {
           "id": "Wall_3",
-          "time": 12,
-          "description": "Wall",
-          "coordinates": [
-            {
-              "x": 3.1,
-              "y": -0.4
-            },
-            {
-              "x": 3.2,
-              "y": -0.2
-            }
-          ]
+          "description": "Wall"
         }
       ]
     }
+  },
+  "lastLiDarWorkerTrackersFrame": {
+    "LiDarTrackerWorker1": [
+      {
+        "id": "Wall_3",
+        "time": 12,
+        "description": "Wall",
+        "coordinates": [
+          {
+            "x": 3.1,
+            "y": -0.4
+          },
+          {
+            "x": 3.2,
+            "y": -0.2
+          }
+        ]
+      }
+    ]
   },
   "poses": [
     {

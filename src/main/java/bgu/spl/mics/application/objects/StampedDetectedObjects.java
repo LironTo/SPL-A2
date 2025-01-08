@@ -1,5 +1,6 @@
 package bgu.spl.mics.application.objects;
 
+import bgu.spl.mics.Tuple;
 import java.util.List;
 
 /**
@@ -22,12 +23,12 @@ public class StampedDetectedObjects {
     public List<DetectedObject> getDetectedObjects() {
         return detectedObjects;
     }
-    public boolean isError(){
+    public Tuple<Boolean, String> isError(){
         for(DetectedObject detectedObject: detectedObjects){
             if(detectedObject.getId().equals("ERROR")){
-                return true;
+                return new Tuple<Boolean, String>(true, detectedObject.getDescription());
             }
         }
-        return false;
+        return new Tuple<Boolean, String>(false, null);
     }
 }

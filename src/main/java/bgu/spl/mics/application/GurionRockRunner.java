@@ -51,7 +51,7 @@ public class GurionRockRunner {
         Gson gson = new Gson();
         config configuration;
         String folderAddress = "./example_input_with_error/";
-        String outputFilePath = "./example_output.json"; // Path for output JSON
+        String outputFilePath = folderAddress + "example_output_with_error.json"; // Path for output JSON
 
         // Step 1: Parse Configuration File
         try (FileReader reader = new FileReader(folderAddress + "configuration_file.json")) {
@@ -64,7 +64,7 @@ public class GurionRockRunner {
 
         // Step 2: Initialize LiDarDataBase
         configuration.getLidarWorkers().setLidarsDataPathPrev(folderAddress);
-        LiDarDataBase lidarDatabase = LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
+        LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
         System.out.println("LiDarDataBase initialized with path: " + configuration.getLidarWorkers().getLidarsDataPath());
 
         // Step 3: Initialize Services
@@ -88,11 +88,9 @@ public class GurionRockRunner {
         for (Thread thread : threads) {
             thread.start();
         }
-       Thread timeservice= new Thread(initializeTimeService(configuration, threads, initLatch, numberOfServices));
-        timeservice.start();
+        initializeTimeService(configuration, threads, initLatch, numberOfServices);
+        threads.get(threads.size()-1).start();
 
-
-        // Step 5: Wait for Threads to Finish
        for (Thread thread : threads) {
             try {
                  thread.join();
@@ -100,6 +98,8 @@ public class GurionRockRunner {
                 e.printStackTrace();
             }
        }
+
+       System.out.println("All threads have finished.");
 
         // Step 6: Generate Output
         generateOutput(outputFilePath);
@@ -144,7 +144,7 @@ public class GurionRockRunner {
                 System.out.println("No detected objects found for camera: " + cameraKey);
             }
 
-            CameraService cameraService = new CameraService(camera, initLatch);
+            CameraService cameraService = new CameraService(camera, initLatch, cameraKey);
             threads.add(new Thread(cameraService));
         }
     }
@@ -170,9 +170,9 @@ public class GurionRockRunner {
         threads.add(new Thread(poseService));
     }
 
-    private static TimeService initializeTimeService(config configuration, List<Thread> threads, CountDownLatch initLatch, int numberOfServices) {
+    private static void initializeTimeService(config configuration, List<Thread> threads, CountDownLatch initLatch, int numberOfServices) {
         TimeService timeService = new TimeService(configuration.getTickTime(), configuration.getDuration(), initLatch, numberOfServices);
-        return timeService;
+        threads.add(new Thread(timeService));
     }
 
     private static void generateOutput(String outputFilePath) {
@@ -231,14 +231,12 @@ private static void generateErrorOutput(String outputFilePath) {
     SimulationErrorOutPut errorOutput = new SimulationErrorOutPut();
 
     // Collect error details
-    errorOutput.error = "Sensor failure detected.";
+    errorOutput.error = StatisticalFolder.getInstance().getError();
     errorOutput.faultySensor = StatisticalFolder.getInstance().getFaultySensor();
 
     // Get last frames
-    SimulationErrorOutPut.Frames frames = new SimulationErrorOutPut.Frames();
-    frames.cameras = StatisticalFolder.getInstance().getLastCameraFrames();
-    frames.lidar = StatisticalFolder.getInstance().getLastLiDarFrames();
-    errorOutput.lastFrames = frames;
+    errorOutput.lastCamerasFrame = StatisticalFolder.getInstance().getLastCameraFrames();
+    errorOutput.lastLiDarWorkerTrackersFrame = StatisticalFolder.getInstance().getLastLiDarFrames();
 
     // Get poses
     errorOutput.poses = StatisticalFolder.getInstance().getRobotPoses();

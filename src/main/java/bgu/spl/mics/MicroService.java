@@ -1,9 +1,7 @@
 package bgu.spl.mics;
 
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 /**
  * The MicroService is an abstract class that any micro-service in the system
@@ -160,25 +158,26 @@ public abstract class MicroService implements Runnable {
      * otherwise you will end up in an infinite loop.
      */
     @Override
-public void run() {
-    messageBus.register(this);
-    initialize();
-    System.out.println("MicroService " + name + " is running");
-    while (!terminated) {
-        try {
-            Message message = messageBus.awaitMessage(this);
-            System.out.println("MicroService " + name + " received message from" + message.getClass().getName());
-            if(message!=null){
-                Callback<Message>  callback = (Callback<Message>) callbackMap.get(message.getClass());
-                if(callback!=null){
-                    callback.call(message);
+    public void run() {
+        messageBus.register(this);
+        initialize();
+        System.out.println("MicroService " + name + " is running");
+        while (!terminated) {
+            try {
+                Message message = messageBus.awaitMessage(this);
+                if(message==null) throw new InterruptedException();
+                System.out.println("MicroService " + name + " received message from" + message.getClass().getName());
+                if(message!=null){
+                    Callback<Message>  callback = (Callback<Message>) callbackMap.get(message.getClass());
+                    if(callback!=null){
+                        callback.call(message);
+                    }
                 }
+            } catch (InterruptedException e) {
+                System.out.println("MicroService " + name + " is terminated");
             }
-        } catch (InterruptedException e) {
-            e.printStackTrace();
         }
-    }
 
-    messageBus.unregister(this);
-}
+        messageBus.unregister(this);
+    }
 }

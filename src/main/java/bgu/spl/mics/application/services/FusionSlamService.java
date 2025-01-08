@@ -5,7 +5,6 @@ import bgu.spl.mics.application.objects.TrackedObject;
 import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import bgu.spl.mics.application.objects.Pose;
-import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.MicroService;
 
@@ -51,15 +50,17 @@ public class FusionSlamService extends MicroService {
         });
 
         subscribeBroadcast(TickBroadcast.class , tickBroadcast -> {
-            latch= tickBroadcast.getLatch();
+            latch = tickBroadcast.getLatch();
             int tick = tickBroadcast.getTick();
             if (tick == -1) {
+                latch.countDown();
                 terminate();
             }
             StatisticalFolder stats = StatisticalFolder.getInstance();
             if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
                 System.out.println("sending finish broadcast");
                 sendBroadcast(new FinishRunBroadcast(getName()));
+                latch.countDown();
                 terminate();
             }
             if (tickBroadcast.getLatch() != null) {
@@ -73,11 +74,15 @@ public class FusionSlamService extends MicroService {
             if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
                 System.out.println("sending finish broadcast");
                 sendBroadcast(new FinishRunBroadcast(getName()));
+                StatisticalFolder.getInstance().setFusionTerminated(true);
+                latch.countDown();
                 terminate();
             }
         });
 
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
+            StatisticalFolder.getInstance().setFusionTerminated(true);
+            latch.countDown();
             terminate();
         });
         if (latch != null) {

@@ -6,14 +6,10 @@ import java.util.Map;
 public class SimulationErrorOutPut {
     public String error;
     public String faultySensor;
-    public Frames lastFrames;
+    public Map<String, StampedDetectedObjects> lastCamerasFrame;
+    public Map<String, List<TrackedObject>> lastLiDarWorkerTrackersFrame;
     public List<Pose> poses;
     public Statistics statistics;
-
-    public static class Frames {
-        public Map<String, StampedDetectedObjects> cameras;
-        public Map<String, List<TrackedObject>> lidar;
-    }
 
     public static class Statistics {
         public int systemRuntime;

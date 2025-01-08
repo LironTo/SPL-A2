@@ -134,7 +134,6 @@ public <T> Future<T> sendEvent(Event<T> e) {
         System.out.println("EventBus: Queue size for " + m.getName() + " after adding event: " + microServiceMessages.size());
     } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
-        throw new IllegalStateException("Failed to send event: " + e, ex);
     }
 
     return future;
@@ -144,7 +143,6 @@ public <T> Future<T> sendEvent(Event<T> e) {
 
 	@Override
 	public void register(MicroService m) {
-		// TODO Auto-generated method stub
 		microServiceQueue.computeIfAbsent(m, k -> new LinkedBlockingQueue<>());
 	}
 
@@ -176,6 +174,7 @@ public Message awaitMessage(MicroService m) throws InterruptedException {
     // Log the state of the queue before taking the message
     System.out.println("EventBus: Queue size for " + m.getName() + " before taking message: " + queue.size());
 
+    
     Message message = queue.take();
 
     // Log the message that was dequeued

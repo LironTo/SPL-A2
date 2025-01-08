@@ -1,9 +1,7 @@
 package bgu.spl.mics.application.objects;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
@@ -25,7 +23,9 @@ public class StatisticalFolder {
     private final ConcurrentHashMap<String, List<TrackedObject>> lastLiDarFrame = new ConcurrentHashMap<>();
     private List<Pose> robotPoses = new ArrayList<>();
     private String faultySensor;
+    private String error;
     private boolean CrashedOccured=false;
+    private boolean isFusionTerminated=false;
     private boolean isPoseTerminated=false;
 
     public StatisticalFolder() {
@@ -39,10 +39,13 @@ public class StatisticalFolder {
         System.out.println("incrementing lidar off num to " + OffLidarServiceCounter);}
     public void setPoseTerminated(boolean b) { isPoseTerminated=b;
     System.out.println("setting pose termination to"+ b); }
-    public void setCrashedOccured(boolean b, String faultySensor ) { CrashedOccured=b; this.faultySensor=faultySensor; }
+    public void setCrashedOccured(boolean b, String faultySensor, String error) { CrashedOccured=b; this.faultySensor=faultySensor; this.error=error; }
     public String getFaultySensor() { return faultySensor; }
+    public String getError() { return error; }
     public boolean isCrashedOccured() { return CrashedOccured; }
     public boolean isPoseTerminated() { return isPoseTerminated; }
+    public void setFusionTerminated(boolean b) { isFusionTerminated=b; }
+    public boolean isFusionTerminated() { return isFusionTerminated; }
     public boolean isLidarServiceTerminated() { return LidarServiceCounter<=OffLidarServiceCounter; }
     public int getSystemRuntime() { return systemRuntime; }
     public int getNumDetectedObjects() { return numDetectedObjects; }
@@ -90,5 +93,13 @@ public class StatisticalFolder {
 
 
     public static StatisticalFolder getInstance() { return instance; }
+
+    public int getNumOfActiveServices(){
+        int sum = CameraServiceCounter - OffCameraServiceCounter;
+        sum += LidarServiceCounter - OffLidarServiceCounter;
+        if(!isPoseTerminated) sum += 1;
+        if(!isFusionTerminated) sum += 1;
+        return sum;
+    }
 
 }

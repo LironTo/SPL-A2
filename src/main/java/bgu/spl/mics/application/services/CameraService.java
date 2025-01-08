@@ -1,12 +1,13 @@
 package bgu.spl.mics.application.services;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.Camera;
-import bgu.spl.mics.application.objects.DetectedObject;
 import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
+import bgu.spl.mics.Tuple;
 
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 
 import bgu.spl.mics.MicroService;
@@ -20,18 +21,17 @@ import bgu.spl.mics.MicroService;
  */
 public class CameraService extends MicroService {
     private Camera camera;
-    
+    List<Tuple<Integer, StampedDetectedObjects>> detectedObjects;
 
     /**
      * Constructor for CameraService.
      *
      * @param camera The Camera object that this service will use to detect objects.
      */
-    public CameraService(Camera camera, CountDownLatch latch) {
-        super("CameraService", latch);
+    public CameraService(Camera camera, CountDownLatch latch, String name) {
+        super(name, latch);
         this.camera = camera;
-
-       
+        detectedObjects = new CopyOnWriteArrayList<Tuple<Integer, StampedDetectedObjects>>();
     }
 
     /**
@@ -45,51 +45,84 @@ public class CameraService extends MicroService {
         subscribeBroadcast(TickBroadcast.class, tickBroadcast -> {
             latch= tickBroadcast.getLatch();
             int tick = tickBroadcast.getTick();
+
             if (tick == -1) {
+                latch.countDown();
                 terminate();
-            } else {
+            } 
+
+            else {
                 System.out.println("CameraService: Tick received: " + tick);
-                StampedDetectedObjects stamped = camera.getDetectedObjects(tick);
-                if(camera.getStatus()==STATUS.ERROR){ //only after the methos the status may change
-                    StatisticalFolder.getInstance().setCrashedOccured(true, getName());
+                StampedDetectedObjects stamped = null;
+
+                try{ // camera.getStatus()==STATUS.ERROR
+                    stamped = camera.getDetectedObjects(tick);
+                }
+                catch (InterruptedException e){
+                    System.out.println("CameraService: CameraService " + getName() + " crashed due to an error: " + e.getMessage());
+                    StatisticalFolder.getInstance().setCrashedOccured(true, getName(), e.getMessage());
                     sendBroadcast(new CrashedBroadcast(getName()));
+                    StatisticalFolder.getInstance().incementOffCameraServiceCounter();
+                    latch.countDown();
                     terminate();
                 }
-                else if(camera.getStatus()==STATUS.DOWN){
+
+                if(camera.getStatus()==STATUS.DOWN){ // Change
                     StatisticalFolder.getInstance().incementOffCameraServiceCounter();
                     sendBroadcast(new TerminatedBroadcast(getName()));
+                    latch.countDown();
                     terminate();
                 }
-               else if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
-                    StatisticalFolder.getInstance().updateLastCameraFrame(getName(), stamped);
+
+                else if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
                     System.out.println("Detected " + stamped.getDetectedObjects().size() + " objects");
                     StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());
-                    int freq= this.camera.getFrequency();
-                    StatisticalFolder.getInstance().updateLastCameraFrame(getName(), stamped);
-                    sendEvent(new DetectObjectEvent(stamped, getName(), freq));
+                    addCorrectTimeDO(stamped);
+                }
+
+                for(int i = 0; i < detectedObjects.size(); i++){
+                    Tuple<Integer, StampedDetectedObjects> tuple = detectedObjects.get(i);
+                    if(tuple.getFirst() <= tick){
+                        StatisticalFolder.getInstance().updateLastCameraFrame(getName(), tuple.getSecond());
+                        detectedObjects.remove(i);
+                        i--;
+                        sendEvent(new DetectObjectsEvent(tuple.getSecond(), tuple.getFirst(), getName()));
+                    }
                 }
             }
-        if (tickBroadcast.getLatch() != null) {
-            tickBroadcast.getLatch().countDown();
-            System.out.println(getName() + ": Acknowledged Tick " + tick);
-        }
+
+            if (tickBroadcast.getLatch() != null) {
+                tickBroadcast.getLatch().countDown();
+                System.out.println(getName() + ": Acknowledged Tick " + tick);
+            }
+
         });
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
+            StatisticalFolder.getInstance().incementOffCameraServiceCounter();
+            latch.countDown();
+            terminate();
         });
         subscribeBroadcast(FinishRunBroadcast.class, (finishRunBroadcast) -> {
             // Terminate the service when the FinishRunBroadcast is received
+            StatisticalFolder.getInstance().incementOffCameraServiceCounter();
+            latch.countDown();
+            terminate();
+        });
+        subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
+            StatisticalFolder.getInstance().incementOffCameraServiceCounter();
+            camera.setStatus(STATUS.ERROR);
+            latch.countDown();
             terminate();
         });
 
-        subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
-            //StatisticalFolder.getInstance().setCrashedOccured(true, getName());
-           // camera.setStatus(STATUS.ERROR);
-            terminate();
-        });
         if (latch != null) {
             latch.countDown();
             System.out.println(getName() + ": Initialization complete, counted down global latch.");
         }
          // Count down the latch after initialization
+    }
+
+    public void addCorrectTimeDO(StampedDetectedObjects stampedDetectedObjects){
+        detectedObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime() + camera.getFrequency(), stampedDetectedObjects));
     }
 }

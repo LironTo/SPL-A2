@@ -38,6 +38,7 @@ public class PoseService extends MicroService {
             int tick = tickBroadcast.getTick();
             if (tick == -1) {
                 // Terminate the service when the tick indicates shutdown
+                latch.countDown();
                 terminate();
             } else {
                 if(gpsimu.getStatus() == STATUS.UP){
@@ -61,13 +62,20 @@ public class PoseService extends MicroService {
         });
         subscribeBroadcast(FinishRunBroadcast.class, (finishRunBroadcast) -> {
             // Terminate the service when the FinishRunBroadcast is received
+            latch.countDown();
             terminate();
         });
-        subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {            
+
+        subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {  
+            StatisticalFolder.getInstance().setPoseTerminated(true);
+            latch.countDown();
+            terminate();          
         });
 
         subscribeBroadcast(CrashedBroadcast.class , crashBroad ->  {
             gpsimu.setStatus(STATUS.ERROR);
+            StatisticalFolder.getInstance().setPoseTerminated(true);
+            latch.countDown();
             terminate();
         });
         if (latch != null) {

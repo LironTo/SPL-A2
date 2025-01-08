@@ -1,8 +1,8 @@
 package bgu.spl.mics.application.objects;
 
-import java.io.ObjectInputFilter.Status;
 import java.util.LinkedList;
 import java.util.List;
+import bgu.spl.mics.Tuple;
 
 /**
  * Represents a camera sensor on the robot.
@@ -31,21 +31,27 @@ public class Camera {
 
     public void setStatus(STATUS status) { this.status = status; }
     public void addStampedDetectedObject(StampedDetectedObjects stampedDetectedObjects) { detectedObjectsList.add(stampedDetectedObjects); }
-    public StampedDetectedObjects getDetectedObjects(int time) {
+
+    public StampedDetectedObjects getDetectedObjects(int time) throws InterruptedException {
         if(indexCamera==detectedObjectsList.size()){
             status=STATUS.DOWN;
         }
+        
         System.out.println("Searching detected objects for time: " + time + ", frequency: " + frequency);
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
             int objectTime = stampedDetectedObjects.getTime();
-            if (objectTime == time || objectTime == time + frequency) {  // Adjust logic here
-                if(!stampedDetectedObjects.isError()){
-                System.out.println("Found matching detected object for time: " + time + ", objectTime: " + objectTime);
-                indexCamera++;
-                return stampedDetectedObjects;
+            if (objectTime == time) {
+                Tuple<Boolean, String> msgIfError = stampedDetectedObjects.isError();
+                if(!msgIfError.getFirst()){
+                    System.out.println("Found matching detected object for time: " + time + ", objectTime: " + objectTime);
+                    indexCamera++;
+                    return stampedDetectedObjects;
+                }
+                else {
+                    status=STATUS.ERROR;
+                    throw new InterruptedException(msgIfError.getSecond());
+                } 
             }
-            else {status=STATUS.ERROR;} 
-        }
         }
         System.out.println("No matching detected object found for time: " + time);
         return null;

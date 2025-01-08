@@ -48,10 +48,16 @@ public class GurionRockRunner {
      * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
      */
     public static void main(String[] args) {
+        if (args.length < 1) {
+            System.err.println("Please provide the path to the configuration file as the first argument.");
+            System.exit(1);
+        }
+
         Gson gson = new Gson();
         config configuration;
-        String folderAddress = "./example_input_with_error/";
-        String outputFilePath = folderAddress + "example_output_with_error.json"; // Path for output JSON
+        String pathToFile = args[0];
+        String folderAddress = getAddressOfConfig(pathToFile);
+        String outputFilePath = pathToFile; // Path for output JSON
 
         // Step 1: Parse Configuration File
         try (FileReader reader = new FileReader(folderAddress + "configuration_file.json")) {
@@ -94,7 +100,7 @@ public class GurionRockRunner {
        for (Thread thread : threads) {
             try {
                  thread.join();
-           } catch (InterruptedException e) {
+            } catch (InterruptedException e) {
                 e.printStackTrace();
             }
        }
@@ -276,4 +282,8 @@ private static void generateErrorOutput(String outputFilePath) {
         e.printStackTrace();
     }
 }
+
+    private static String getAddressOfConfig(String pathToFile){
+        return pathToFile.substring(0, pathToFile.lastIndexOf("/")+1);
+    }
 }

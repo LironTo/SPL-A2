@@ -29,7 +29,7 @@ public class CameraService extends MicroService {
      * @param camera The Camera object that this service will use to detect objects.
      */
     public CameraService(Camera camera, CountDownLatch latch, String name) {
-        super(name, latch);
+        super("Camera " + camera.getId(), latch);
         this.camera = camera;
         detectedObjects = new CopyOnWriteArrayList<Tuple<Integer, StampedDetectedObjects>>();
     }

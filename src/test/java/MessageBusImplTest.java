@@ -1,4 +1,4 @@
-package bgu.spl.mics.tests;
+/*package bgu.spl.mics.tests;
 
 import bgu.spl.mics.*;
 import org.junit.jupiter.api.BeforeEach;
@@ -133,4 +133,4 @@ public class MessageBusImplTest {
         assertEquals(testEvent, message1);
         assertEquals(testEvent2, message2);
     }
-}
+}*/

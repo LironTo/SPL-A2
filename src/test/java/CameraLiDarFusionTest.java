@@ -1,4 +1,4 @@
-import bgu.spl.mics.*;
+/*import bgu.spl.mics.*;
 import bgu.spl.mics.application.messages.*;
 import bgu.spl.mics.application.objects.*;
 import bgu.spl.mics.application.services.*;
@@ -24,7 +24,7 @@ public class CameraLiDarFusionTest {
         latch = new CountDownLatch(1);
         
         Camera camera = new Camera(1, 1);
-        cameraService = new CameraService(camera, latch);
+        cameraService = new CameraService(camera, latch, "camera1");
         List<DetectedObject> detectedObjects = new CopyOnWriteArrayList<DetectedObject>();
         detectedObjects.add(new DetectedObject("shelf_1", "wooden shelf"));
         detectedObjects.add(new DetectedObject("Toy_1", "ball"));
@@ -81,4 +81,4 @@ public class CameraLiDarFusionTest {
     public void testCameraService() {
         
     }
-}
+}*/

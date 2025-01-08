@@ -1,8 +1,8 @@
 {
   "error": "Camera Disconnected",
-  "faultySensor": "camera1",
+  "faultySensor": "Camera 1",
   "lastCamerasFrame": {
-    "camera1": {
+    "Camera 1": {
       "time": 12,
       "detectedObjects": [
         {

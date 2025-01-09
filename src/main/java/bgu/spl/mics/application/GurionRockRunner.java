@@ -5,48 +5,39 @@ import com.google.gson.GsonBuilder;
 import com.google.gson.reflect.TypeToken;
 
 import bgu.spl.mics.application.objects.Camera;
-
-import java.io.FileReader;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.lang.reflect.Type;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.concurrent.CountDownLatch;
 import bgu.spl.mics.application.objects.FusionSlam;
 import bgu.spl.mics.application.objects.LiDarWorkerTracker;
 import bgu.spl.mics.application.objects.SimulationOutput;
-import bgu.spl.mics.application.objects.StampedDetectedObjects;  // Update this to the correct class if it exists
-import bgu.spl.mics.application.objects.SimulationErrorOutPut;  // Assuming the SimulationErrorOutPut class is in this package
+import bgu.spl.mics.application.objects.StampedDetectedObjects;
+import bgu.spl.mics.application.objects.SimulationErrorOutPut;
 import bgu.spl.mics.application.objects.StatisticalFolder;
-import bgu.spl.mics.application.objects.GPSIMU;  // Assuming the GPSIMU class is in this package
+import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.LandMark;
 import bgu.spl.mics.application.objects.LiDarDataBase;
-import bgu.spl.mics.application.objects.config;  // Assuming the config class is in this package
+import bgu.spl.mics.application.objects.config;
 import bgu.spl.mics.application.services.CameraService;
 import bgu.spl.mics.application.services.FusionSlamService;
 import bgu.spl.mics.application.services.LiDarService;
 import bgu.spl.mics.application.services.PoseService;
 import bgu.spl.mics.application.services.TimeService;
 
+import java.io.FileReader;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.lang.reflect.Type;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.CountDownLatch;
+
 /**
- * The main entry point for the GurionRock Pro Max Ultra Over 9000 simulation.
- * <p>
- * This class initializes the system and starts the simulation by setting up
- * services, objects, and configurations.
- * </p>
+ * The main entry point for the simulation.
  */
 public class GurionRockRunner {
 
-    /**
-     * The main method of the simulation.
-     * This method sets up the necessary components, parses configuration files,
-     * initializes services, and starts the simulation.
-     *
-     * @param args Command-line arguments. The first argument is expected to be the path to the configuration file.
-     */
     public static void main(String[] args) {
         if (args.length < 1) {
             System.err.println("Please provide the path to the configuration file as the first argument.");
@@ -54,24 +45,37 @@ public class GurionRockRunner {
         }
 
         Gson gson = new Gson();
+        System.out.println("Starting simulation with configuration file: " + args[0]);
         config configuration;
-        String pathToFile = args[0];
-        String folderAddress = getAddressOfConfig(pathToFile);
-        String outputFilePath = pathToFile; // Path for output JSON
+
+        // Use Path to manage file paths
+        Path configFilePath = Paths.get(args[0]);
+        Path folderAddress = configFilePath.getParent();
+        Path outputFilePath = configFilePath.resolveSibling("output.json"); // Output file in the same directory
 
         // Step 1: Parse Configuration File
-        try (FileReader reader = new FileReader(folderAddress + "configuration_file.json")) {
+        try (FileReader reader = new FileReader(configFilePath.toFile())) {
             configuration = gson.fromJson(reader, config.class);
+            if (configuration == null) {
+                throw new NullPointerException("Configuration file is empty or invalid.");
+            }
             System.out.println("Configuration loaded successfully.");
         } catch (Exception e) {
+            System.err.println("Error loading configuration file: " + e.getMessage());
             e.printStackTrace();
             return;
         }
 
         // Step 2: Initialize LiDarDataBase
-        configuration.getLidarWorkers().setLidarsDataPathPrev(folderAddress);
-        LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
-        System.out.println("LiDarDataBase initialized with path: " + configuration.getLidarWorkers().getLidarsDataPath());
+        try {
+            configuration.getLidarWorkers().setLidarsDataPathPrev(folderAddress.toString());
+            LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
+            System.out.println("LiDarDataBase initialized with path: " + configuration.getLidarWorkers().getLidarsDataPath());
+        } catch (Exception e) {
+            System.err.println("Error initializing LiDarDataBase: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
 
         // Step 3: Initialize Services
         List<Thread> threads = new ArrayList<>();
@@ -81,53 +85,66 @@ public class GurionRockRunner {
         StatisticalFolder statisticalFolder = StatisticalFolder.getInstance();
         statisticalFolder.setCameras(config.getNumberOfCameras(configuration));
         statisticalFolder.setLidarservicesCounter(config.getNumberOfLidarWorkers(configuration));
-        // Update with the number of services
         CountDownLatch initLatch = new CountDownLatch(numberOfServices);
-        // Initialize each service
-        initializeFusionSlamService(threads, initLatch);
-        initializeCameraServices(configuration, folderAddress, threads, initLatch);
-        initializeLiDarServices(configuration, threads, initLatch);
-        initializePoseService(configuration, folderAddress, threads, initLatch);
-        // Initialize TimeService
+
+        try {
+            initializeFusionSlamService(threads, initLatch);
+            initializeCameraServices(configuration, folderAddress, threads, initLatch);
+            initializeLiDarServices(configuration, threads, initLatch);
+            initializePoseService(configuration, folderAddress, threads, initLatch);
+        } catch (Exception e) {
+            System.err.println("Error initializing services: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
 
         // Step 4: Start All Threads
         for (Thread thread : threads) {
             thread.start();
         }
-        initializeTimeService(configuration, threads, initLatch, numberOfServices);
-        threads.get(threads.size()-1).start();
+        try {
+            initializeTimeService(configuration, threads, initLatch, numberOfServices);
+            threads.get(threads.size() - 1).start();
+        } catch (Exception e) {
+            System.err.println("Error initializing TimeService: " + e.getMessage());
+            e.printStackTrace();
+            return;
+        }
 
-       for (Thread thread : threads) {
+        for (Thread thread : threads) {
             try {
-                 thread.join();
+                thread.join();
             } catch (InterruptedException e) {
                 e.printStackTrace();
             }
-       }
+        }
 
-       System.out.println("All threads have finished.");
+        System.out.println("All threads have finished.");
 
         // Step 6: Generate Output
-        generateOutput(outputFilePath);
-        System.out.println("Simulation output written to: " + outputFilePath);
+        try {
+            generateOutput(outputFilePath.toString());
+            System.out.println("Simulation output written to: " + outputFilePath);
+        } catch (Exception e) {
+            System.err.println("Error generating output: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 
-    private static void initializeCameraServices(config configuration, String folderAddress, List<Thread> threads, CountDownLatch initLatch) {
-        configuration.getCameras().setCameraDatasPathPrev(folderAddress);
+    private static void initializeCameraServices(config configuration, Path folderAddress, List<Thread> threads, CountDownLatch initLatch) {
+        configuration.getCameras().setCameraDatasPathPrev(folderAddress.toString());
         Map<String, List<StampedDetectedObjects>> cameraData = null;
 
-        // Load camera data
         try (FileReader reader = new FileReader(configuration.getCameras().getCameraDatasPath())) {
             Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
             cameraData = new Gson().fromJson(reader, mapType);
             System.out.println("Loaded camera data successfully.");
         } catch (IOException e) {
+            System.err.println("Failed to load camera data: " + e.getMessage());
             e.printStackTrace();
-            System.err.println("Failed to load camera data.");
             return;
         }
 
-        // Initialize cameras
         for (config.CameraConfiguration camConfig : configuration.getCameras().getCamerasConfigurations()) {
             Camera camera = new Camera(camConfig.getId(), camConfig.getFrequency());
             String cameraKey = camConfig.getCameraKey();
@@ -137,12 +154,6 @@ public class GurionRockRunner {
 
                 System.out.println("Loading detected objects for camera: " + cameraKey);
                 for (StampedDetectedObjects stampedDetectedObjects : detectedObjects) {
-                    if (stampedDetectedObjects.getDetectedObjects() == null || stampedDetectedObjects.getDetectedObjects().isEmpty()) {
-                        System.out.println("Warning: DetectedObjects is null or empty for time: " + stampedDetectedObjects.getTime());
-                    } else {
-                        System.out.println("Loaded detected objects for time: " + stampedDetectedObjects.getTime() +
-                            ", size: " + stampedDetectedObjects.getDetectedObjects().size());
-                    }
                     camera.addStampedDetectedObject(stampedDetectedObjects);
                 }
                 System.out.println("Assigned detected objects to camera: " + cameraKey);
@@ -169,8 +180,8 @@ public class GurionRockRunner {
         threads.add(new Thread(fusionSlamService));
     }
 
-    private static void initializePoseService(config configuration, String folderAddress, List<Thread> threads, CountDownLatch initLatch) {
-        configuration.setPoseJsonFilePrev(folderAddress);
+    private static void initializePoseService(config configuration, Path folderAddress, List<Thread> threads, CountDownLatch initLatch) {
+        configuration.setPoseJsonFilePrev(folderAddress.toString());
         GPSIMU gpsimu = GPSIMU.getInstance(configuration.getPoseJsonFile());
         PoseService poseService = new PoseService(gpsimu, initLatch);
         threads.add(new Thread(poseService));
@@ -182,108 +193,91 @@ public class GurionRockRunner {
     }
 
     private static void generateOutput(String outputFilePath) {
-        // Check if a crash occurred
         if (StatisticalFolder.getInstance().isCrashedOccured()) {
             generateErrorOutput(outputFilePath);
         } else {
             generateSuccessOutput(outputFilePath);
         }
     }
-    
-    // Method to handle successful simulation output
+
     private static void generateSuccessOutput(String outputFilePath) {
         SimulationOutput output = new SimulationOutput();
-    
+
         // Collect statistics
         output.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
         output.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
         output.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
         output.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
-    
+
         FusionSlam fusionSlam = FusionSlam.getInstance();
         List<LandMark> landmarks = fusionSlam.getLandmarks();
-    
-        // Process landmarks
+
         for (LandMark landmark : landmarks) {
             if (landmark == null || landmark.getCoordinates() == null) {
                 System.err.println("Skipped a null landmark or one with null coordinates.");
-                continue; // Skip invalid landmarks
+                continue;
             }
-    
-            // Safely create the SimulationOutput.Landmark
+
             SimulationOutput.Landmark outputLandmark = new SimulationOutput.Landmark(
                 landmark.getId(),
                 landmark.getDescription(),
                 landmark.getCoordinates()
             );
-    
-            // Log the processed landmark
             output.landMarks.put(landmark.getId(), outputLandmark);
         }
-    
-        // Serialize the SimulationOutput object
+
         try (FileWriter writer = new FileWriter(outputFilePath)) {
-            Gson gson = new GsonBuilder()
-                .setPrettyPrinting()
-                .create();
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(output, writer);
         } catch (IOException e) {
+            System.err.println("Error writing output file: " + e.getMessage());
             e.printStackTrace();
         }
     }
-    
-// Method to handle error simulation output
-private static void generateErrorOutput(String outputFilePath) {
-    SimulationErrorOutPut errorOutput = new SimulationErrorOutPut();
 
-    // Collect error details
-    errorOutput.error = StatisticalFolder.getInstance().getError();
-    errorOutput.faultySensor = StatisticalFolder.getInstance().getFaultySensor();
+    private static void generateErrorOutput(String outputFilePath) {
+        SimulationErrorOutPut errorOutput = new SimulationErrorOutPut();
 
-    // Get last frames
-    errorOutput.lastCamerasFrame = StatisticalFolder.getInstance().getLastCameraFrames();
-    errorOutput.lastLiDarWorkerTrackersFrame = StatisticalFolder.getInstance().getLastLiDarFrames();
+        // Collect error details
+        errorOutput.error = StatisticalFolder.getInstance().getError();
+        errorOutput.faultySensor = StatisticalFolder.getInstance().getFaultySensor();
 
-    // Get poses
-    errorOutput.poses = StatisticalFolder.getInstance().getRobotPoses();
+        // Get last frames
+        errorOutput.lastCamerasFrame = StatisticalFolder.getInstance().getLastCameraFrames();
+        errorOutput.lastLiDarWorkerTrackersFrame = StatisticalFolder.getInstance().getLastLiDarFrames();
 
-    // Collect statistics
-    SimulationErrorOutPut.Statistics stats = new SimulationErrorOutPut.Statistics();
-    stats.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
-    stats.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
-    stats.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
-    stats.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
+        // Get poses
+        errorOutput.poses = StatisticalFolder.getInstance().getRobotPoses();
 
-    // Convert List<LandMark> to Map<String, Landmark>
-    stats.landMarks = new HashMap<>();
-    List<LandMark> landmarks = FusionSlam.getInstance().getLandmarks();
-    for (LandMark landmark : landmarks) {
-        if (landmark != null) {
-            stats.landMarks.put(
-                landmark.getId(),
-                new SimulationErrorOutPut.Landmark(
+        SimulationErrorOutPut.Statistics stats = new SimulationErrorOutPut.Statistics();
+        stats.systemRuntime = StatisticalFolder.getInstance().getSystemRuntime();
+        stats.numDetectedObjects = StatisticalFolder.getInstance().getNumDetectedObjects();
+        stats.numTrackedObjects = StatisticalFolder.getInstance().getNumTrackedObjects();
+        stats.numLandmarks = StatisticalFolder.getInstance().getNumLandmarks();
+
+        stats.landMarks = new HashMap<>();
+        List<LandMark> landmarks = FusionSlam.getInstance().getLandmarks();
+        for (LandMark landmark : landmarks) {
+            if (landmark != null) {
+                stats.landMarks.put(
                     landmark.getId(),
-                    landmark.getDescription(),
-                    landmark.getCoordinates() // Assuming this is List<CloudPoint>
-                )
-            );
+                    new SimulationErrorOutPut.Landmark(
+                        landmark.getId(),
+                        landmark.getDescription(),
+                        landmark.getCoordinates()
+                    )
+                );
+            }
         }
-    }
 
-    errorOutput.statistics = stats;
+        errorOutput.statistics = stats;
 
-    // Serialize the SimulationErrorOutPut object
-    try (FileWriter writer = new FileWriter(outputFilePath)) {
-        Gson gson = new GsonBuilder()
-            .setPrettyPrinting()
-            .create();
-        gson.toJson(errorOutput, writer);
-    } catch (IOException e) {
-        e.printStackTrace();
-    }
-}
-
-    private static String getAddressOfConfig(String pathToFile){
-        return pathToFile.substring(0, pathToFile.lastIndexOf("/")+1);
+        try (FileWriter writer = new FileWriter(outputFilePath)) {
+            Gson gson = new GsonBuilder().setPrettyPrinting().create();
+            gson.toJson(errorOutput, writer);
+        } catch (IOException e) {
+            System.err.println("Error writing error output file: " + e.getMessage());
+            e.printStackTrace();
+        }
     }
 }

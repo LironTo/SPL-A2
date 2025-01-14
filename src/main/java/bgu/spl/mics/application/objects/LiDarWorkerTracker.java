@@ -37,4 +37,14 @@ public class LiDarWorkerTracker {
         lastTrackedObjects = trackedObjects;
         return trackedObjects;
     }
+
+    public StampedCloudPoints getSCP(String id, int time) {
+        LiDarDataBase dataBase = LiDarDataBase.getInstance();
+        return dataBase.getSCP(id, time);
+    }
+
+    public List<StampedCloudPoints> getAllSCP(int time){
+        LiDarDataBase dataBase = LiDarDataBase.getInstance();
+        return dataBase.getAllSCP(time);
+    }
 }

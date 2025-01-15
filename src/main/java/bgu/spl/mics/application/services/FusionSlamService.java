@@ -27,6 +27,10 @@ public class FusionSlamService extends MicroService {
         this.fusionSlam = fusionSlam;
     }
 
+    public FusionSlam getFusionSlam() {
+        return fusionSlam;
+    }
+
     /**
      * Initializes the FusionSlamService.
      * Registers the service to handle TrackedObjectsEvents, PoseEvents, and TickBroadcasts,

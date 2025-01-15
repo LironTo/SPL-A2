@@ -127,4 +127,8 @@ public class FusionSlam {
         double y_global = sin_theta * x_local + cos_theta * y_local + y_robot;
         return new CloudPoint(x_global, y_global);
     }
+
+    // public void addTrackedObj(TrackedObject TO, int index){
+        
+    // }
 }

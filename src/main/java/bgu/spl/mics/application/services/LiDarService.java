@@ -150,6 +150,8 @@ public class LiDarService extends MicroService {
     }
 
     public void addStampedDetectedObject(int time, StampedDetectedObjects stampedDetectedObjects){
-        allocTimeSDObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime(), stampedDetectedObjects));
+        if(stampedDetectedObjects != null){
+            allocTimeSDObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime(), stampedDetectedObjects));
+        }
     }
 }

@@ -1,0 +1,23 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Current File",
+            "request": "launch",
+            "mainClass": "${file}",
+            "args": "C:/Users/chene/OneDrive/Documents/3rd Semester/SPL/SPL-A2/example input/"
+        },
+        {
+            "type": "java",
+            "name": "GurionRockRunner",
+            "request": "launch",
+            "mainClass": "bgu.spl.mics.application.GurionRockRunner",
+            "projectName": "spl225ass2",
+            "args": "C:/Users/chene/OneDrive/Documents/3rd Semester/SPL/SPL-A2/example input/"
+        }
+    ]
+}

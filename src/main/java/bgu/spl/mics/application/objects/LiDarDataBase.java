@@ -32,8 +32,9 @@ public class LiDarDataBase {
         return instance;
     }
     public static LiDarDataBase getInstance() {
-        if(instance == null)
-            throw new IllegalStateException("LiDarDataBase was not initialized");
+        if(instance == null){
+            instance = new LiDarDataBase();
+        }
         return instance;
 
     }

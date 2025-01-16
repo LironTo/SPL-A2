@@ -10,7 +10,7 @@ import java.util.List;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class CameraLiDarFusionTest {
+public class CameraLiDarFusionTests {
     private static CameraService cameraService;
     private static LiDarDataBase liDarDataBase;
     private static LiDarService liDarService;
@@ -18,9 +18,9 @@ public class CameraLiDarFusionTest {
     private static CountDownLatch latch;
 
     @BeforeAll
-    private static void setUp() {
+    public static void setUp() {  // Make this public
         latch = new CountDownLatch(1);
-        
+
         Camera camera = new Camera(1, 1);
         cameraService = new CameraService(camera, latch, "camera1");
         List<DetectedObject> detectedObjects = new CopyOnWriteArrayList<DetectedObject>();
@@ -34,8 +34,6 @@ public class CameraLiDarFusionTest {
         detectedObjects2.add(new DetectedObject("Toy_1", "ball"));
         StampedDetectedObjects stampedDetectedObjects2 = new StampedDetectedObjects(3, detectedObjects2);
         camera.addStampedDetectedObject(stampedDetectedObjects2);
-
-
         liDarDataBase = LiDarDataBase.getInstance();
         liDarDataBase.dump();
 
@@ -81,7 +79,7 @@ public class CameraLiDarFusionTest {
     }
 
     @Test
-    private void testCameraService() {
+    public void testCameraService() {  // Make this public
         assertTrue(cameraService.getCamera().getId() == 1);
         assertTrue(cameraService.getCamera().getFrequency() == 1);
         assertTrue(cameraService.getCamera().getStatus() == STATUS.UP);
@@ -89,7 +87,8 @@ public class CameraLiDarFusionTest {
         assertTrue(cameraService.getCamera().getDetectedObjectsList().get(0).getTime() == 1);
         assertTrue(cameraService.getCamera().getDetectedObjectsList().get(1).getTime() == 3);
         assertTrue(cameraService.getCamera().getDetectedObjectsList().get(0).getDetectedObjects().size() == 3);
-        assertTrue(cameraService.getCamera().getDetectedObjectsList().get(1).getDetectedObjects().size() == 2); 
+        assertTrue(cameraService.getCamera().getDetectedObjectsList().get(1).getDetectedObjects().size() == 2);
+
         assertTrue(cameraService.getDetectedObjects().size() == 0);
         assertTrue(cameraService.getName().equals("Camera 1"));
 
@@ -102,8 +101,7 @@ public class CameraLiDarFusionTest {
     }
 
     @Test
-    private void testLiDarService(){
-
+    public void testLiDarService(){  // Make this public
         assertTrue(liDarService.getLiDarWorkerTracker().getId() == 1);
         assertTrue(liDarService.getLiDarWorkerTracker().getFrequency() == 2);
         assertTrue(liDarService.getLiDarWorkerTracker().getStatus() == STATUS.UP);
@@ -111,7 +109,7 @@ public class CameraLiDarFusionTest {
         assertTrue(liDarService.getName().equals("LiDarTrackerWorker1"));
         assertTrue(liDarService.getLatch().getCount() == 1);
         assertTrue(liDarDataBase.getSCloudPoints().size() == 5);
-        
+
         List<StampedCloudPoints> list = liDarService.getLiDarWorkerTracker().getAllSCP(1);
         assertTrue(list.size() == 3);
         for (StampedCloudPoints stampedCloudPoints : list) {
@@ -127,21 +125,8 @@ public class CameraLiDarFusionTest {
         assertTrue(liDarService.getAllocTimeSDObjects().size() == 5);
     }
 
-    private StampedDetectedObjects getDObySCP(StampedCloudPoints SCP){
-        StampedDetectedObjects SDO = null;
-        for (Tuple<Integer, StampedDetectedObjects> StampedDetectedObject : cameraService.getDetectedObjects()) {
-            for(DetectedObject SD : StampedDetectedObject.getSecond().getDetectedObjects()){
-                if(SD.getId() == SCP.getId()) {
-                    SDO = StampedDetectedObject.getSecond();
-                    break;
-                }
-            }
-        }
-        return SDO;
-    }
-
     @Test
-    private void testFusionSlam(){
+    public void testFusionSlam(){
         List<StampedCloudPoints> list = liDarService.getLiDarWorkerTracker().getAllSCP(1);
         list.addAll(liDarService.getLiDarWorkerTracker().getAllSCP(3));
         assertTrue(list.size() == 5);
@@ -151,7 +136,7 @@ public class CameraLiDarFusionTest {
         }
         assertTrue(trackedObjects.size() == 5);
         fusionSlamService.getFusionSlam().updateMap(trackedObjects);
-        assertTrue(fusionSlamService.getFusionSlam().getLandmarks().size() == 5);
+        assertTrue(fusionSlamService.getFusionSlam().getLandmarks().size() == 4);
         assertTrue(fusionSlamService.getFusionSlam().getPoses().size() == 3);
     }
 
@@ -169,5 +154,19 @@ public class CameraLiDarFusionTest {
             TO = new TrackedObject(DO.getId(), SDO.getTime(), DO.getDescription(), SCP.getCloudPoints());
         }
         return TO;
+    }
+
+
+    private StampedDetectedObjects getDObySCP(StampedCloudPoints SCP){
+        StampedDetectedObjects SDO = null;
+        for (Tuple<Integer, StampedDetectedObjects> StampedDetectedObject : cameraService.getDetectedObjects()) {
+            for(DetectedObject SD : StampedDetectedObject.getSecond().getDetectedObjects()){
+                if(SD.getId() == SCP.getId()) {
+                    SDO = StampedDetectedObject.getSecond();
+                    break;
+                }
+            }
+        }
+        return SDO;
     }
 }

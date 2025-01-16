@@ -105,11 +105,11 @@ public class CameraService extends MicroService {
             }
 
         });
-        subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
-            StatisticalFolder.getInstance().incementOffCameraServiceCounter();
-            latch.countDown();
-            terminate();
-        });
+        // subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
+        //     StatisticalFolder.getInstance().incementOffCameraServiceCounter();
+        //     latch.countDown();
+        //     terminate();
+        // });
         subscribeBroadcast(FinishRunBroadcast.class, (finishRunBroadcast) -> {
             // Terminate the service when the FinishRunBroadcast is received
             StatisticalFolder.getInstance().incementOffCameraServiceCounter();

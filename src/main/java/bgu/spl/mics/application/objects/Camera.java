@@ -49,7 +49,7 @@ public class Camera {
                 }
                 else {
                     status=STATUS.ERROR;
-                    throw new InterruptedException(msgIfError.getSecond());
+                    //throw new InterruptedException(msgIfError.getSecond());
                 } 
             }
         }

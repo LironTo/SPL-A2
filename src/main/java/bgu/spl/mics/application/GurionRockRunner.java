@@ -39,6 +39,7 @@ import java.util.concurrent.CountDownLatch;
 public class GurionRockRunner {
 
     public static void main(String[] args) {
+        args=new String[]{"C:\\Users\\chene\\OneDrive\\Documents\\3rd Semester\\SPL\\SPL-A2\\example_input\\configuration_file.json"};
         if (args.length < 1) {
             System.err.println("Please provide the path to the configuration file as the first argument.");
             System.exit(1);

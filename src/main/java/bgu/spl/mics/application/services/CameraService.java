@@ -34,6 +34,14 @@ public class CameraService extends MicroService {
         detectedObjects = new CopyOnWriteArrayList<Tuple<Integer, StampedDetectedObjects>>();
     }
 
+    public Camera getCamera() {
+        return camera;
+    }
+
+    public List<Tuple<Integer, StampedDetectedObjects>> getDetectedObjects() {
+        return detectedObjects;
+    }
+
     /**
      * Initializes the CameraService.
      * Registers the service to handle TickBroadcasts and sets up callbacks for sending
@@ -123,6 +131,21 @@ public class CameraService extends MicroService {
     }
 
     public void addCorrectTimeDO(StampedDetectedObjects stampedDetectedObjects){
+        detectedObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime() + camera.getFrequency(), stampedDetectedObjects));
+    }
+
+    public void addCorrectTimeDO(int time){
+        StampedDetectedObjects stampedDetectedObjects = null;
+        try{
+            stampedDetectedObjects = camera.getDetectedObjects(time);
+        }
+        catch (InterruptedException e){
+            System.out.println("CameraService: CameraService " + getName() + " crashed due to an error: " + e.getMessage());
+        }
+        if(stampedDetectedObjects==null){
+            return;
+        }
+        StatisticalFolder.getInstance().addManyDetectedObject(stampedDetectedObjects.getDetectedObjects().size());
         detectedObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime() + camera.getFrequency(), stampedDetectedObjects));
     }
 }

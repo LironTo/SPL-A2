@@ -35,6 +35,18 @@ public class LiDarService extends MicroService {
         this.allocTimeSDObjects = new ArrayList<Tuple<Integer, StampedDetectedObjects>>();
     }
 
+    public LiDarWorkerTracker getLiDarWorkerTracker() {
+        return liderworkertracker;
+    }
+
+    public List<Tuple<Integer, StampedDetectedObjects>> getAllocTimeSDObjects() {
+        return allocTimeSDObjects;
+    }
+
+    public CountDownLatch getLatch() {
+        return latch;
+    }
+
     /**
      * Initializes the LiDarService.
      * Registers the service to handle DetectObjectsEvents and TickBroadcasts,
@@ -137,5 +149,11 @@ public class LiDarService extends MicroService {
         TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(trackedObjects, getName());
         allocTimeSDObjects.remove(index);
         sendEvent(trackedObjectsEvent);
+    }
+
+    public void addStampedDetectedObject(int time, StampedDetectedObjects stampedDetectedObjects){
+        if(stampedDetectedObjects != null){
+            allocTimeSDObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime(), stampedDetectedObjects));
+        }
     }
 }

@@ -39,17 +39,17 @@ import java.util.concurrent.CountDownLatch;
 public class GurionRockRunner {
 
     public static void main(String[] args) {
-        // if (args.length < 1) {
-        //     System.err.println("Please provide the path to the configuration file as the first argument.");
-        //     System.exit(1);
-        // }
+        if (args.length < 1) {
+            System.err.println("Please provide the path to the configuration file as the first argument.");
+            System.exit(1);
+        }
 
         Gson gson = new Gson();
-        System.out.println("Starting simulation with configuration file: "); // add  + args[0]
+        System.out.println("Starting simulation with configuration file: "+ args[0]);
         config configuration;
 
         // Use Path to manage file paths
-        Path configFilePath = Paths.get("./example_input/configuration_file.json");
+        Path configFilePath = Paths.get(args[0]);
         Path folderAddress = configFilePath.getParent();
         Path outputFilePath = configFilePath.resolveSibling("output.json"); // Output file in the same directory
 

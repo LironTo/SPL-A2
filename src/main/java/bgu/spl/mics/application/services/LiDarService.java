@@ -35,16 +35,6 @@ public class LiDarService extends MicroService {
         this.allocTimeSDObjects = new ArrayList<Tuple<Integer, StampedDetectedObjects>>();
     }
 
-    public LiDarWorkerTracker getLiDarWorkerTracker() {
-        return liderworkertracker;
-    }
-
-    public List<Tuple<Integer, StampedDetectedObjects>> getAllocTimeSDObjects() {
-        return allocTimeSDObjects;
-    }
-
-
-
     /**
      * Initializes the LiDarService.
      * Registers the service to handle DetectObjectsEvents and TickBroadcasts,
@@ -61,10 +51,10 @@ public class LiDarService extends MicroService {
             int processedTimeByLiDar = detectObjectsEvent.getStampedDetectedObjects().getTime() + liderworkertracker.getFrequency();
             if(detectObjectsEvent.getProcessedTime() >= processedTimeByLiDar){
                 int index = allocTimeSDObjects.size();
-                addStampedDetectedObject(detectObjectsEvent.getProcessedTime(), detectObjectsEvent.getStampedDetectedObjects());
+                allocTimeSDObjects.add(new Tuple<Integer, StampedDetectedObjects>(detectObjectsEvent.getProcessedTime(), detectObjectsEvent.getStampedDetectedObjects()));
                 sendEventByIndex(index);
             } else {
-                addStampedDetectedObject(processedTimeByLiDar, detectObjectsEvent.getStampedDetectedObjects());
+                allocTimeSDObjects.add(new Tuple<Integer, StampedDetectedObjects>(processedTimeByLiDar, detectObjectsEvent.getStampedDetectedObjects()));
             }
 
             StatisticalFolder.getInstance().addManyTrackedObject(detectObjectsEvent.getStampedDetectedObjects().getDetectedObjects().size());
@@ -147,11 +137,5 @@ public class LiDarService extends MicroService {
         TrackedObjectsEvent trackedObjectsEvent = new TrackedObjectsEvent(trackedObjects, getName());
         allocTimeSDObjects.remove(index);
         sendEvent(trackedObjectsEvent);
-    }
-
-    public void addStampedDetectedObject(int time, StampedDetectedObjects stampedDetectedObjects){
-        if(stampedDetectedObjects != null){
-            allocTimeSDObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime(), stampedDetectedObjects));
-        }
     }
 }

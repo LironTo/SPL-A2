@@ -1,7 +1,6 @@
 package bgu.spl.mics.application.objects;
 
 import java.util.List;
-import java.util.concurrent.CopyOnWriteArrayList;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -33,16 +32,10 @@ public class LiDarDataBase {
     }
     public static LiDarDataBase getInstance() {
         if(instance == null)
-            instance = new LiDarDataBase();
+            throw new IllegalStateException("LiDarDataBase was not initialized");
         return instance;
 
     }
-
-    public void dump(){
-        cloudPoints.clear();
-    }
-
-    public List<StampedCloudPoints> getSCloudPoints() {return this.cloudPoints;}
 
     private void loadData(String filePath) {
         Gson gson = new Gson();
@@ -70,23 +63,6 @@ public class LiDarDataBase {
             }
         }
         return null;
-    }
-
-    public StampedCloudPoints getSCP(String id, int time){
-        for (StampedCloudPoints stampedCloudPoints : cloudPoints) {
-            if(stampedCloudPoints.getId().equals(id) && stampedCloudPoints.getTime() == time){
-                return stampedCloudPoints;
-            }
-        }
-        return null;
-    }
-
-    public List<StampedCloudPoints> getAllSCP(int time){
-        List<StampedCloudPoints> list = new CopyOnWriteArrayList<>();
-        for (StampedCloudPoints stampedCloudPoints : cloudPoints) {
-            if(stampedCloudPoints.getTime() == time) {list.add(stampedCloudPoints);}
-        }
-        return list;
     }
 
     public int getLatestTime(String id, int time) {

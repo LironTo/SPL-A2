@@ -34,13 +34,6 @@ public class CameraService extends MicroService {
         detectedObjects = new CopyOnWriteArrayList<Tuple<Integer, StampedDetectedObjects>>();
     }
 
-    public Camera getCamera() {
-        return camera;
-    }
-
-    public List<Tuple<Integer, StampedDetectedObjects>> getDetectedObjects() {
-        return detectedObjects;
-    }
     /**
      * Initializes the CameraService.
      * Registers the service to handle TickBroadcasts and sets up callbacks for sending
@@ -84,7 +77,7 @@ public class CameraService extends MicroService {
                 else if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
                     System.out.println("Detected " + stamped.getDetectedObjects().size() + " objects");
                     StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());
-                    addCorrectTimeDO(tick);
+                    addCorrectTimeDO(stamped);
                 }
 
                 for(int i = 0; i < detectedObjects.size(); i++){
@@ -129,23 +122,7 @@ public class CameraService extends MicroService {
          // Count down the latch after initialization
     }
 
-    public void addCorrectTimeDO(int time){
-        StampedDetectedObjects stampedDetectedObjects = null;
-        try{
-            stampedDetectedObjects = camera.getDetectedObjects(time);
-        }
-        catch (InterruptedException e){
-            System.out.println("CameraService: CameraService " + getName() + " crashed due to an error: " + e.getMessage());
-            StatisticalFolder.getInstance().setCrashedOccured(true, getName(), e.getMessage());
-            sendBroadcast(new CrashedBroadcast(getName()));
-            StatisticalFolder.getInstance().incementOffCameraServiceCounter();
-            latch.countDown();
-            terminate();
-        }
-        if(stampedDetectedObjects==null){
-            return;
-        }
-        StatisticalFolder.getInstance().addManyDetectedObject(stampedDetectedObjects.getDetectedObjects().size());
+    public void addCorrectTimeDO(StampedDetectedObjects stampedDetectedObjects){
         detectedObjects.add(new Tuple<Integer, StampedDetectedObjects>(stampedDetectedObjects.getTime() + camera.getFrequency(), stampedDetectedObjects));
     }
 }

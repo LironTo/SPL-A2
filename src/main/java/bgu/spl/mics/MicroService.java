@@ -38,14 +38,6 @@ public abstract class MicroService implements Runnable {
         this.latch = latch;
 
     }
-    
-    public String getMicroServiceName() {
-        return name;
-    }
-
-    public CountDownLatch getLatch() {
-        return latch;
-    }
 
     /**
      * Subscribes to events of type {@code type} with the callback

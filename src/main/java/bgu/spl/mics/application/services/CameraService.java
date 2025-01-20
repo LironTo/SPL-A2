@@ -75,6 +75,8 @@ public class CameraService extends MicroService {
                     terminate();
                 }
 
+                
+
                 if(camera.getStatus()==STATUS.DOWN){ // Change
                     StatisticalFolder.getInstance().incementOffCameraServiceCounter();
                     sendBroadcast(new TerminatedBroadcast(getName()));

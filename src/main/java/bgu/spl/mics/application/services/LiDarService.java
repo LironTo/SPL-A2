@@ -5,6 +5,7 @@ import bgu.spl.mics.application.objects.STATUS;
 import bgu.spl.mics.application.objects.StampedDetectedObjects;
 import bgu.spl.mics.application.objects.StatisticalFolder;
 import bgu.spl.mics.application.objects.TrackedObject;
+import bgu.spl.mics.ConsoleColors;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.Tuple;
 
@@ -57,8 +58,8 @@ public class LiDarService extends MicroService {
     protected void initialize() {
 
         subscribeEvent(DetectObjectsEvent.class, (DetectObjectsEvent detectObjectsEvent) -> {
-            System.out.println("LiDarWorkerService: Received DetectObjectEvent at time: " + detectObjectsEvent.getProcessedTime());
-            System.out.println("Detected objects size: " + detectObjectsEvent.getStampedDetectedObjects().getDetectedObjects().size());
+            System.out.println(ConsoleColors.CYAN+"LiDarWorkerService: Received DetectObjectEvent at time: "+ConsoleColors.RESET + detectObjectsEvent.getProcessedTime());
+            System.out.println(ConsoleColors.CYAN+"Detected objects size: "+ConsoleColors.RESET + detectObjectsEvent.getStampedDetectedObjects().getDetectedObjects().size());
 
             int processedTimeByLiDar = detectObjectsEvent.getStampedDetectedObjects().getTime() + liderworkertracker.getFrequency();
             if(detectObjectsEvent.getProcessedTime() >= processedTimeByLiDar){
@@ -86,7 +87,7 @@ public class LiDarService extends MicroService {
             else 
             {
                 if(liderworkertracker.getStatus()==STATUS.UP){
-                    System.out.println("LiDarWorkerService: Tick received: " + tick);
+                    System.out.println(ConsoleColors.CYAN+"LiDarWorkerService: Tick received: "+ConsoleColors.RESET + tick);
                     for (int i = 0; i < allocTimeSDObjects.size(); i++) {
                         if (allocTimeSDObjects.get(i).getFirst() <= tick) {
                             sendEventByIndex(i);
@@ -95,7 +96,7 @@ public class LiDarService extends MicroService {
                     }
                     if (tickBroadcast.getLatch() != null) {
                         tickBroadcast.getLatch().countDown();
-                        System.out.println(getName() + ": Acknowledged Tick " + tick);
+                        System.out.println(ConsoleColors.CYAN+getName() + ": Acknowledged Tick "+ConsoleColors.RESET + tick);
                     }
                 }
         
@@ -137,7 +138,7 @@ public class LiDarService extends MicroService {
         });
         if (latch != null) {
             latch.countDown();
-            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+            System.out.println(ConsoleColors.CYAN+getName() + ": Initialization complete, counted down global latch."+ConsoleColors.RESET);
         }
          // Count down the latch after initialization
     }

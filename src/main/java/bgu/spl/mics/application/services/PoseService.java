@@ -3,6 +3,7 @@ import bgu.spl.mics.application.messages.*;
 
 import java.util.concurrent.CountDownLatch;
 
+import bgu.spl.mics.ConsoleColors;
 import bgu.spl.mics.MicroService;
 import bgu.spl.mics.application.objects.GPSIMU;
 import bgu.spl.mics.application.objects.Pose;
@@ -57,7 +58,7 @@ public class PoseService extends MicroService {
         }
             if (tickBroadcast.getLatch() != null) {
                 tickBroadcast.getLatch().countDown();
-                System.out.println(getName() + ": Acknowledged Tick " + tick);
+                System.out.println(ConsoleColors.CYAN+getName() + ": Acknowledged Tick "+ConsoleColors.RESET + tick);
             }
         });
         subscribeBroadcast(FinishRunBroadcast.class, (finishRunBroadcast) -> {
@@ -80,7 +81,7 @@ public class PoseService extends MicroService {
         });
         if (latch != null) {
             latch.countDown();
-            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+            System.out.println(ConsoleColors.CYAN+getName() + ": Initialization complete, counted down global latch."+ConsoleColors.RESET);
         }
          // Count down the latch after initialization
     }

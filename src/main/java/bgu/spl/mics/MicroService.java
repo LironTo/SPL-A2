@@ -161,12 +161,12 @@ public abstract class MicroService implements Runnable {
     public void run() {
         messageBus.register(this);
         initialize();
-        System.out.println("MicroService " + name + " is running");
+        System.out.println(ConsoleColors.ORANGE+"MicroService "+ConsoleColors.RESET + name + " is running");
         while (!terminated) {
             try {
                 Message message = messageBus.awaitMessage(this);
                 if(message==null) throw new InterruptedException();
-                System.out.println("MicroService " + name + " received message from" + message.getClass().getName());
+                System.out.println(ConsoleColors.ORANGE+"MicroService "+ConsoleColors.RESET + name + " received message from" + message.getClass().getName());
                 if(message!=null){
                     Callback<Message>  callback = (Callback<Message>) callbackMap.get(message.getClass());
                     if(callback!=null){
@@ -174,7 +174,7 @@ public abstract class MicroService implements Runnable {
                     }
                 }
             } catch (InterruptedException e) {
-                System.out.println("MicroService " + name + " is terminated");
+                System.out.println(ConsoleColors.ORANGE+"MicroService "+ConsoleColors.RESET + name + " is terminated");
             }
         }
 

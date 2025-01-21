@@ -4,6 +4,8 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ConcurrentHashMap;
 
+import bgu.spl.mics.ConsoleColors;
+
 /**
  * Holds statistical information about the system's operation.
  * This class aggregates metrics such as the runtime of the system,
@@ -36,9 +38,9 @@ public class StatisticalFolder {
     }
     public void setLidarservicesCounter(int num) { LidarServiceCounter=num; }
     public void incementOffLidarServiceCounter() { OffLidarServiceCounter++; 
-        System.out.println("incrementing lidar off num to " + OffLidarServiceCounter);}
+        System.out.println(ConsoleColors.BROWN+"incrementing lidar off num to "+ConsoleColors.RESET + OffLidarServiceCounter);}
     public void setPoseTerminated(boolean b) { isPoseTerminated=b;
-    System.out.println("setting pose termination to"+ b); }
+    System.out.println(ConsoleColors.BROWN+"setting pose termination to"+ConsoleColors.RESET+ b); }
     public void setCrashedOccured(boolean b, String faultySensor, String error) { CrashedOccured=b; this.faultySensor=faultySensor; this.error=error; }
     public String getFaultySensor() { return faultySensor; }
     public String getError() { return error; }
@@ -53,14 +55,14 @@ public class StatisticalFolder {
     public int getNumLandmarks() { return numLandmarks; }
     public void setCameras(int num) { CameraServiceCounter=num; }
     public void incementOffCameraServiceCounter() { OffCameraServiceCounter++;
-     System.out.println("incrementing camera off num to " + OffCameraServiceCounter); }    
+     System.out.println(ConsoleColors.BROWN+"incrementing camera off num to "+ConsoleColors.RESET + OffCameraServiceCounter); }    
     public boolean isCameraServiceTerminated() { return CameraServiceCounter<=OffCameraServiceCounter; }
     public void addOneSystemRuntime() { 
-        System.out.println("Adding one system runtime");
+        System.out.println(ConsoleColors.BROWN+"Adding one system runtime"+ConsoleColors.RESET);
         systemRuntime++; }
     public void addOneDetectedObject() { numDetectedObjects++; }
     public void addManyDetectedObject(int num) { 
-        System.out.println("Adding " + num + " detected objects");
+        System.out.println(ConsoleColors.BROWN+"Adding "+ConsoleColors.RESET + num + " detected objects");
         this.numDetectedObjects+= num; }
     public void addManyTrackedObject(int num) { this.numTrackedObjects+= num; }
     public void addOneTrackedObject() { numTrackedObjects++; }

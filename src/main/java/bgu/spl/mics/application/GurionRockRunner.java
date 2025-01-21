@@ -20,6 +20,7 @@ import bgu.spl.mics.application.services.FusionSlamService;
 import bgu.spl.mics.application.services.LiDarService;
 import bgu.spl.mics.application.services.PoseService;
 import bgu.spl.mics.application.services.TimeService;
+import bgu.spl.mics.ConsoleColors;
 
 import java.io.FileReader;
 import java.io.FileWriter;
@@ -33,23 +34,23 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.CountDownLatch;
 
+
 /**
  * The main entry point for the simulation.
  */
 public class GurionRockRunner {
-
     public static void main(String[] args) {
         if (args.length < 1) {
-            System.err.println("Please provide the path to the configuration file as the first argument.");
+            System.err.println(ConsoleColors.RED +"Please provide the path to the configuration file as the first argument."+ConsoleColors.RESET);
             System.exit(1);
         }
 
         Gson gson = new Gson();
-        System.out.println("Starting simulation with configuration file: "+ args[0]);
+        System.out.println(ConsoleColors.GREEN +"Starting simulation with configuration file: "+ConsoleColors.RESET+ args[0]);//
         config configuration;
 
         // Use Path to manage file paths
-        Path configFilePath = Paths.get(args[0]);
+        Path configFilePath = Paths.get("."+args[0]);
         Path folderAddress = configFilePath.getParent();
         Path outputFilePath = configFilePath.resolveSibling("output.json"); // Output file in the same directory
 
@@ -57,11 +58,11 @@ public class GurionRockRunner {
         try (FileReader reader = new FileReader(configFilePath.toFile())) {
             configuration = gson.fromJson(reader, config.class);
             if (configuration == null) {
-                throw new NullPointerException("Configuration file is empty or invalid.");
+                throw new NullPointerException(ConsoleColors.RED +"Configuration file is empty or invalid."+ConsoleColors.RESET);
             }
-            System.out.println("Configuration loaded successfully.");
+            System.out.println(ConsoleColors.GREEN +"Configuration loaded successfully."+ConsoleColors.RESET);
         } catch (Exception e) {
-            System.err.println("Error loading configuration file: " + e.getMessage());
+            System.err.println(ConsoleColors.RED +"Error loading configuration file: "+ConsoleColors.RESET + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -70,9 +71,9 @@ public class GurionRockRunner {
         try {
             configuration.getLidarWorkers().setLidarsDataPathPrev(folderAddress.toString());
             LiDarDataBase.getInstance(configuration.getLidarWorkers().getLidarsDataPath());
-            System.out.println("LiDarDataBase initialized with path: " + configuration.getLidarWorkers().getLidarsDataPath());
+            System.out.println(ConsoleColors.GREEN +"LiDarDataBase initialized with path: "+ConsoleColors.RESET + configuration.getLidarWorkers().getLidarsDataPath());
         } catch (Exception e) {
-            System.err.println("Error initializing LiDarDataBase: " + e.getMessage());
+            System.err.println(ConsoleColors.RED +"Error initializing LiDarDataBase: "+ConsoleColors.RESET + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -93,7 +94,7 @@ public class GurionRockRunner {
             initializeLiDarServices(configuration, threads, initLatch);
             initializePoseService(configuration, folderAddress, threads, initLatch);
         } catch (Exception e) {
-            System.err.println("Error initializing services: " + e.getMessage());
+            System.err.println(ConsoleColors.RED +"Error initializing services: "+ ConsoleColors.RESET + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -106,7 +107,7 @@ public class GurionRockRunner {
             initializeTimeService(configuration, threads, initLatch, numberOfServices);
             threads.get(threads.size() - 1).start();
         } catch (Exception e) {
-            System.err.println("Error initializing TimeService: " + e.getMessage());
+            System.err.println(ConsoleColors.RED +"Error initializing TimeService: "+ ConsoleColors.RESET + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -119,14 +120,14 @@ public class GurionRockRunner {
             }
         }
 
-        System.out.println("All threads have finished.");
+        System.out.println(ConsoleColors.GREEN +"All threads have finished."+ConsoleColors.RESET );
 
         // Step 6: Generate Output
         try {
             generateOutput(outputFilePath.toString());
-            System.out.println("Simulation output written to: " + outputFilePath);
+            System.out.println(ConsoleColors.GREEN +"Simulation output written to: " + ConsoleColors.RESET + outputFilePath);
         } catch (Exception e) {
-            System.err.println("Error generating output: " + e.getMessage());
+            System.err.println(ConsoleColors.RED +"Error generating output: "+ConsoleColors.RESET  + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -138,9 +139,9 @@ public class GurionRockRunner {
         try (FileReader reader = new FileReader(configuration.getCameras().getCameraDatasPath())) {
             Type mapType = new TypeToken<Map<String, List<StampedDetectedObjects>>>() {}.getType();
             cameraData = new Gson().fromJson(reader, mapType);
-            System.out.println("Loaded camera data successfully.");
+            System.out.println(ConsoleColors.GREEN +"Loaded camera data successfully."+ConsoleColors.RESET );
         } catch (IOException e) {
-            System.err.println("Failed to load camera data: " + e.getMessage());
+            System.err.println(ConsoleColors.RED +"Failed to load camera data: "+ConsoleColors.RESET  + e.getMessage());
             e.printStackTrace();
             return;
         }
@@ -152,13 +153,13 @@ public class GurionRockRunner {
             if (cameraData != null && cameraData.containsKey(cameraKey)) {
                 List<StampedDetectedObjects> detectedObjects = cameraData.get(cameraKey);
 
-                System.out.println("Loading detected objects for camera: " + cameraKey);
+                System.out.println(ConsoleColors.GREEN +"Loading detected objects for camera: "+ConsoleColors.RESET + cameraKey);
                 for (StampedDetectedObjects stampedDetectedObjects : detectedObjects) {
                     camera.addStampedDetectedObject(stampedDetectedObjects);
                 }
-                System.out.println("Assigned detected objects to camera: " + cameraKey);
+                System.out.println(ConsoleColors.GREEN +"Assigned detected objects to camera: "+ConsoleColors.RESET + cameraKey);
             } else {
-                System.out.println("No detected objects found for camera: " + cameraKey);
+                System.out.println(ConsoleColors.GREEN +"No detected objects found for camera: "+ConsoleColors.RESET + cameraKey);
             }
 
             CameraService cameraService = new CameraService(camera, initLatch, cameraKey);
@@ -214,7 +215,7 @@ public class GurionRockRunner {
 
         for (LandMark landmark : landmarks) {
             if (landmark == null || landmark.getCoordinates() == null) {
-                System.err.println("Skipped a null landmark or one with null coordinates.");
+                System.err.println(ConsoleColors.GREEN+"Skipped a null landmark or one with null coordinates."+ConsoleColors.RESET);
                 continue;
             }
 
@@ -230,7 +231,7 @@ public class GurionRockRunner {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(output, writer);
         } catch (IOException e) {
-            System.err.println("Error writing output file: " + e.getMessage());
+            System.err.println(ConsoleColors.RED+"Error writing output file: "+ConsoleColors.RESET + e.getMessage());
             e.printStackTrace();
         }
     }
@@ -276,7 +277,7 @@ public class GurionRockRunner {
             Gson gson = new GsonBuilder().setPrettyPrinting().create();
             gson.toJson(errorOutput, writer);
         } catch (IOException e) {
-            System.err.println("Error writing error output file: " + e.getMessage());
+            System.err.println(ConsoleColors.RED+"Error writing error output file: "+ConsoleColors.RESET + e.getMessage());
             e.printStackTrace();
         }
     }

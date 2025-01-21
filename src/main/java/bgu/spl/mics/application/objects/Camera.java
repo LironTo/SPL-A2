@@ -1,7 +1,10 @@
 package bgu.spl.mics.application.objects;
 
+import java.io.Console;
 import java.util.LinkedList;
 import java.util.List;
+
+import bgu.spl.mics.ConsoleColors;
 import bgu.spl.mics.Tuple;
 
 /**
@@ -20,13 +23,13 @@ public class Camera {
         this.frequency = frequency;
         this.status = STATUS.UP;
         this.detectedObjectsList = new LinkedList<StampedDetectedObjects>();
-        System.out.println("Camera initialized with an empty detectedObjectsList");
+        System.out.println(ConsoleColors.LIGHT_GREEN+"Camera initialized with an empty detectedObjectsList"+ConsoleColors.RESET);
     }
 
     public int getId() { return id; }
     public int getFrequency() { return frequency; }
     public STATUS getStatus() { return status; }
-    public List<StampedDetectedObjects> getDetectedObjectsList() {System.out.println("Camera: Retrieving detected objects for tick: " + detectedObjectsList.get(0).getTime());
+    public List<StampedDetectedObjects> getDetectedObjectsList() {System.out.println(ConsoleColors.LIGHT_GREEN+"Camera: Retrieving detected objects for tick: "+ConsoleColors.RESET + detectedObjectsList.get(0).getTime());
      return detectedObjectsList; }
 
     public void setStatus(STATUS status) { this.status = status; }
@@ -37,13 +40,13 @@ public class Camera {
             status=STATUS.DOWN;
         }
         
-        System.out.println("Searching detected objects for time: " + time + ", frequency: " + frequency);
+        System.out.println(ConsoleColors.LIGHT_GREEN+"Searching detected objects for time: "+ConsoleColors.RESET + time + ", frequency: " + frequency);
         for (StampedDetectedObjects stampedDetectedObjects : detectedObjectsList) {
             int objectTime = stampedDetectedObjects.getTime();
             if (objectTime == time) {
                 Tuple<Boolean, String> msgIfError = stampedDetectedObjects.isError();
                 if(!msgIfError.getFirst()){
-                    System.out.println("Found matching detected object for time: " + time + ", objectTime: " + objectTime);
+                    System.out.println(ConsoleColors.LIGHT_GREEN+"Found matching detected object for time: "+ConsoleColors.RESET + time + ", objectTime: " + objectTime);
                     indexCamera++;
                     return stampedDetectedObjects;
                 }
@@ -53,7 +56,7 @@ public class Camera {
                 } 
             }
         }
-        System.out.println("No matching detected object found for time: " + time);
+        System.out.println(ConsoleColors.LIGHT_GREEN+"No matching detected object found for time: "+ConsoleColors.RESET + time);
         return null;
     }
     

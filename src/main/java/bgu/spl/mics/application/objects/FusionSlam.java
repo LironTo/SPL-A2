@@ -1,6 +1,8 @@
 package bgu.spl.mics.application.objects;
 import java.util.LinkedList;
 import java.util.List;
+
+import bgu.spl.mics.ConsoleColors;
 /**
  * Manages the fusion of sensor data for simultaneous localization and mapping (SLAM).
  * Combines data from multiple sensors (e.g., LiDAR, camera) to build and update a global map.
@@ -28,14 +30,14 @@ public class FusionSlam {
     public List<Pose> getPoses() { return poses; }
 
     public void updateMap(List<TrackedObject> trackedObjects) {
-        System.out.println("FusionSlam: Updating map with " + trackedObjects.size() + " tracked objects.");
+        System.out.println(ConsoleColors.LIGHT_GREEN+"FusionSlam: Updating map with "+ConsoleColors.RESET + trackedObjects.size() + " tracked objects.");
         for (TrackedObject trackedObject : trackedObjects) {
             int lmIndex = checkIfLMExists(trackedObject.getId());
             LandMark newLandmark = null;
 
             if (lmIndex == -1)
             {
-                System.out.println("FusionSlam: Creating new landmark for ID: " + trackedObject.getId());
+                System.out.println(ConsoleColors.LIGHT_GREEN+"FusionSlam: Creating new landmark for ID: "+ConsoleColors.RESET + trackedObject.getId());
                 newLandmark = new LandMark(trackedObject.getId(), trackedObject.getDescription());
                 landmarks.add(newLandmark);
                 StatisticalFolder.getInstance().addOneLandmark();
@@ -64,13 +66,13 @@ public class FusionSlam {
     }
 
     private void addCoordinateToLandmark(LandMark landmark, List<CloudPoint> coordinate, int time) {
-        System.out.println("FusionSlam: Attempting to add coordinate to landmark: " + landmark.getId() + " at time: " + time);
+        System.out.println(ConsoleColors.LIGHT_GREEN+"FusionSlam: Attempting to add coordinate to landmark: "+ConsoleColors.RESET + landmark.getId() + " at time: " + time);
 
         new Thread(() -> {
             Pose pose = checkIfPoseExists(time);
             int counter = 0;
             while (pose == null) {
-                System.out.println("FusionSlam: Pose not found for time: " + time + ". Retrying...");
+                System.out.println(ConsoleColors.LIGHT_GREEN+"FusionSlam: Pose not found for time: "+ConsoleColors.RESET + time + ". Retrying...");
                 try {
                     Thread.sleep(50);
                 } catch (InterruptedException e) {
@@ -96,7 +98,7 @@ public class FusionSlam {
                     }
                 }
 
-                System.out.println("FusionSlam: Added corrected coordinate to landmark: " + landmark.getId());
+                System.out.println(ConsoleColors.LIGHT_GREEN+"FusionSlam: Added corrected coordinate to landmark: "+ConsoleColors.RESET + landmark.getId());
             }
         }).start();
     }

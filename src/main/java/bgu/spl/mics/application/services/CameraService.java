@@ -10,6 +10,7 @@ import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 
+import bgu.spl.mics.ConsoleColors;
 import bgu.spl.mics.MicroService;
 
 /**
@@ -60,14 +61,14 @@ public class CameraService extends MicroService {
             } 
 
             else {
-                System.out.println("CameraService: Tick received: " + tick);
+                System.out.println(ConsoleColors.CYAN+"CameraService: Tick received: "+ConsoleColors.RESET + tick);
                 StampedDetectedObjects stamped = null;
 
                 try{ // camera.getStatus()==STATUS.ERROR
                     stamped = camera.getDetectedObjects(tick);
                 }
                 catch (InterruptedException e){
-                    System.out.println("CameraService: CameraService " + getName() + " crashed due to an error: " + e.getMessage());
+                    System.out.println(ConsoleColors.CYAN+"CameraService: CameraService " + getName() + " crashed due to an error: "+ConsoleColors.RESET + e.getMessage());
                     StatisticalFolder.getInstance().setCrashedOccured(true, getName(), e.getMessage());
                     sendBroadcast(new CrashedBroadcast(getName()));
                     StatisticalFolder.getInstance().incementOffCameraServiceCounter();
@@ -85,7 +86,7 @@ public class CameraService extends MicroService {
                 }
 
                 else if(stamped!=null&&stamped.getDetectedObjects()!=null&&!stamped.getDetectedObjects().isEmpty()){
-                    System.out.println("Detected " + stamped.getDetectedObjects().size() + " objects");
+                    System.out.println(ConsoleColors.CYAN+"Detected " + stamped.getDetectedObjects().size() + " objects"+ConsoleColors.RESET);
                     StatisticalFolder.getInstance().addManyDetectedObject(stamped.getDetectedObjects().size());
                     addCorrectTimeDO(stamped);
                 }
@@ -103,7 +104,7 @@ public class CameraService extends MicroService {
 
             if (tickBroadcast.getLatch() != null) {
                 tickBroadcast.getLatch().countDown();
-                System.out.println(getName() + ": Acknowledged Tick " + tick);
+                System.out.println(ConsoleColors.CYAN+getName() + ": Acknowledged Tick "+ConsoleColors.RESET + tick);
             }
 
         });
@@ -127,7 +128,7 @@ public class CameraService extends MicroService {
 
         if (latch != null) {
             latch.countDown();
-            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+            System.out.println(ConsoleColors.CYAN+getName() + ": Initialization complete, counted down global latch."+ConsoleColors.RESET);
         }
          // Count down the latch after initialization
     }
@@ -142,7 +143,7 @@ public class CameraService extends MicroService {
             stampedDetectedObjects = camera.getDetectedObjects(time);
         }
         catch (InterruptedException e){
-            System.out.println("CameraService: CameraService " + getName() + " crashed due to an error: " + e.getMessage());
+            System.out.println(ConsoleColors.CYAN+"CameraService: CameraService " + getName() + " crashed due to an error: "+ConsoleColors.RESET + e.getMessage());
         }
         if(stampedDetectedObjects==null){
             return;

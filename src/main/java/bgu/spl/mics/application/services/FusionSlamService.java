@@ -6,6 +6,7 @@ import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import bgu.spl.mics.application.objects.Pose;
 import bgu.spl.mics.application.objects.StatisticalFolder;
+import bgu.spl.mics.ConsoleColors;
 import bgu.spl.mics.MicroService;
 
 /**
@@ -40,10 +41,10 @@ public class FusionSlamService extends MicroService {
     protected void initialize() {
         subscribeEvent(TrackedObjectsEvent.class, trackedObjectsEvent -> {
             List<TrackedObject> trackedObjects = trackedObjectsEvent.getSerials();
-            System.out.println("FusionSlamService: Received " + trackedObjects.size() + " tracked objects.");
+            System.out.println(ConsoleColors.CYAN+"FusionSlamService: Received " + trackedObjects.size() + " tracked objects."+ConsoleColors.RESET);
             for (TrackedObject obj : trackedObjects) {
-                System.out.println("FusionSlamService: Tracked object - ID: " + obj.getId() + 
-                    ", Description: " + obj.getDescription());
+                System.out.println(ConsoleColors.CYAN+"FusionSlamService: Tracked object - ID: " + obj.getId() + 
+                    ", Description: " + obj.getDescription()+ConsoleColors.RESET);
             }
             fusionSlam.updateMap(trackedObjects);
         });
@@ -62,21 +63,21 @@ public class FusionSlamService extends MicroService {
             }
             StatisticalFolder stats = StatisticalFolder.getInstance();
             if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
-                System.out.println("sending finish broadcast");
+                System.out.println(ConsoleColors.CYAN+"sending finish broadcast"+ConsoleColors.RESET);
                 sendBroadcast(new FinishRunBroadcast(getName()));
                 latch.countDown();
                 terminate();
             }
             if (tickBroadcast.getLatch() != null) {
                 tickBroadcast.getLatch().countDown();
-                System.out.println(getName() + ": Acknowledged Tick " + tick);
+                System.out.println(ConsoleColors.CYAN+getName() + ": Acknowledged Tick "+ConsoleColors.RESET + tick);
             }
         });
 
         subscribeBroadcast(TerminatedBroadcast.class , termBroad -> {
             StatisticalFolder stats = StatisticalFolder.getInstance();
             if(stats.isPoseTerminated() && stats.isCameraServiceTerminated() && stats.isLidarServiceTerminated()){
-                System.out.println("sending finish broadcast");
+                System.out.println(ConsoleColors.CYAN+"sending finish broadcast"+ConsoleColors.RESET);
                 sendBroadcast(new FinishRunBroadcast(getName()));
                 StatisticalFolder.getInstance().setFusionTerminated(true);
                 latch.countDown();
@@ -91,7 +92,7 @@ public class FusionSlamService extends MicroService {
         });
         if (latch != null) {
             latch.countDown();
-            System.out.println(getName() + ": Initialization complete, counted down global latch.");
+            System.out.println(ConsoleColors.CYAN+getName() + ": Initialization complete, counted down global latch."+ConsoleColors.RESET);
         }
          // Count down the latch after initialization
     }

@@ -55,13 +55,13 @@ public class MessageBusImpl implements MessageBus {
     public <T> void complete(Event<T> e, T result) {
         Future<T> future = futureMap.get(e);
         if (future == null) {
-            System.err.println("MessageBusImpl: Failed to complete event " + e + " - no future found");
+            System.err.println(ConsoleColors.PURPLE+"MessageBusImpl: Failed to complete event "+ConsoleColors.RESET + e + " - no future found");
             throw new IllegalStateException("Failed to complete event: " + e + " - no future found");
         }
     
         future.resolve(result);
         futureMap.remove(e); // Clean up to prevent memory leaks
-        System.out.println("MessageBusImpl: Completed event " + e);
+        System.out.println(ConsoleColors.PURPLE+"MessageBusImpl: Completed event "+ConsoleColors.RESET + e);
     }
     
 
@@ -82,14 +82,14 @@ public void sendBroadcast(Broadcast b) {
             try {
                 // Add the broadcast message to the MicroService's queue
                 microServiceQueue.get(m).put(b); // Using put to block if the queue is full
-                System.out.println("Broadcast " + b.getClass().getSimpleName() + " sent to " + m.getName());
+                System.out.println(ConsoleColors.PURPLE+"Broadcast "+ConsoleColors.RESET + b.getClass().getSimpleName() + " sent to " + m.getName());
             } catch (InterruptedException e) {
                 Thread.currentThread().interrupt(); // Restore interrupt status
-                System.err.println("Failed to send broadcast to " + m.getName());
+                System.err.println(ConsoleColors.PURPLE+"Failed to send broadcast to "+ConsoleColors.RESET + m.getName());
             }
         }
     } else {
-        System.out.println("No subscribers for broadcast " + b.getClass().getSimpleName());
+        System.out.println(ConsoleColors.PURPLE+"No subscribers for broadcast "+ConsoleColors.RESET + b.getClass().getSimpleName());
     }
 }
 
@@ -98,11 +98,11 @@ public void sendBroadcast(Broadcast b) {
 	
 @Override
 public <T> Future<T> sendEvent(Event<T> e) {
-    System.out.println("EventBus: Sending event " + e.getClass().getSimpleName());
+    System.out.println(ConsoleColors.PURPLE+"EventBus: Sending event "+ConsoleColors.RESET + e.getClass().getSimpleName());
 
     BlockingQueue<MicroService> subscribers = eventQueue.get(e.getClass());
     if (subscribers == null || subscribers.isEmpty()) {
-        System.out.println("EventBus: No subscribers found for event " + e.getClass().getSimpleName());
+        System.out.println(ConsoleColors.PURPLE+"EventBus: No subscribers found for event "+ConsoleColors.RESET + e.getClass().getSimpleName());
         return null;
     }
 
@@ -115,14 +115,14 @@ public <T> Future<T> sendEvent(Event<T> e) {
     }
 
     if (m == null) {
-        System.out.println("EventBus: Unexpected state: No MicroService selected for event " + e.getClass().getSimpleName());
+        System.out.println(ConsoleColors.PURPLE+"EventBus: Unexpected state: No MicroService selected for event "+ConsoleColors.RESET + e.getClass().getSimpleName());
         return null;
     }
 
     Future<T> future = new Future<>();
     futureMap.put(e, future); // Add the future before processing the event
 
-    System.out.println("EventBus: Sending event " + e.getClass().getSimpleName() + " to " + m.getName());
+    System.out.println(ConsoleColors.PURPLE+"EventBus: Sending event "+ConsoleColors.RESET + e.getClass().getSimpleName() + " to " + m.getName());
 
     try {
         BlockingQueue<Message> microServiceMessages = microServiceQueue.get(m);
@@ -131,7 +131,7 @@ public <T> Future<T> sendEvent(Event<T> e) {
         }
 
         microServiceMessages.put(e);
-        System.out.println("EventBus: Queue size for " + m.getName() + " after adding event: " + microServiceMessages.size());
+        System.out.println(ConsoleColors.PURPLE+"EventBus: Queue size for " + m.getName() + " after adding event: "+ConsoleColors.RESET + microServiceMessages.size());
     } catch (InterruptedException ex) {
         Thread.currentThread().interrupt();
     }
@@ -164,7 +164,7 @@ public <T> Future<T> sendEvent(Event<T> e) {
 
 	@Override
 public Message awaitMessage(MicroService m) throws InterruptedException {
-    System.out.println("EventBus: " + m.getName() + " waiting for a message...");
+    System.out.println(ConsoleColors.PURPLE+"EventBus: " + m.getName() + " waiting for a message..."+ConsoleColors.RESET);
 
     BlockingQueue<Message> queue = microServiceQueue.get(m);
     if (queue == null) {
@@ -172,13 +172,13 @@ public Message awaitMessage(MicroService m) throws InterruptedException {
     }
 
     // Log the state of the queue before taking the message
-    System.out.println("EventBus: Queue size for " + m.getName() + " before taking message: " + queue.size());
+    System.out.println(ConsoleColors.PURPLE+"EventBus: Queue size for " + m.getName() + " before taking message: "+ConsoleColors.RESET + queue.size());
 
     
     Message message = queue.take();
 
     // Log the message that was dequeued
-    System.out.println("EventBus: " + m.getName() + " received message: " + message.getClass().getSimpleName());
+    System.out.println(ConsoleColors.PURPLE+"EventBus: " + m.getName() + " received message: "+ConsoleColors.RESET + message.getClass().getSimpleName());
 
     return message;
 }

@@ -50,7 +50,12 @@ public class GurionRockRunner {
         config configuration;
 
         // Use Path to manage file paths
-        Path configFilePath = Paths.get("."+args[0]);
+        String pathTo = args[0];
+        if (pathTo.charAt(0) == '/') {
+            pathTo = '.' +pathTo;
+        }
+        //pathTo = "./example_input/configuration_file.json";
+        Path configFilePath = Paths.get(pathTo);
         Path folderAddress = configFilePath.getParent();
         Path outputFilePath = configFilePath.resolveSibling("output.json"); // Output file in the same directory
 
